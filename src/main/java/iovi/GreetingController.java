@@ -26,15 +26,5 @@ public class GreetingController {
     }
 
 
-    @RequestMapping(value = "/image", method = GET)
-    public void getImageAsByteArray(HttpServletResponse response) throws IOException {
-        Captcha captcha=new Captcha(20,6);
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(captcha.image, "png", os);
-        InputStream is = new ByteArrayInputStream(os.toByteArray());
 
-        response.setContentType(MediaType.IMAGE_PNG_VALUE);
-        IOUtils.copy(is, response.getOutputStream());
-
-    }
 }

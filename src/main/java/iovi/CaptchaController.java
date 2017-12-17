@@ -2,6 +2,7 @@ package iovi;
 
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -19,9 +20,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Controller
 public class CaptchaController {
 
+    CaptchaService captchaService=new CaptchaServiceImpl();
+
     @RequestMapping(value = "/captcha", method = GET)
     public void getCaptchaAsByteArray(HttpServletResponse response) throws IOException {
-        Captcha captcha=new Captcha(20,6);
+        Captcha captcha=captchaService.GetNewCaptcha();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(captcha.image, "png", os);
         InputStream inputStream = new ByteArrayInputStream(os.toByteArray());

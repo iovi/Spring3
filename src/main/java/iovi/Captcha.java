@@ -3,7 +3,10 @@ package iovi;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.Random;
+
+import static java.lang.Math.sin;
 
 public class Captcha {
     int id;
@@ -61,9 +64,26 @@ public class Captcha {
         fm = g2d.getFontMetrics();
         g2d.setColor(Color.BLACK);
         g2d.drawString(string, 0, fm.getAscent());
+
+        BufferedImage captchaImage=new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Random random=new Random();
+        int random1=700000+random.nextInt(300000) / 15000000;
+
+
+        for(int captchaX = 0; captchaX < bufferedImage.getWidth(); captchaX++){
+            for(int captchaY = 0; captchaY < bufferedImage.getHeight(); captchaY++) {
+                int x0 = (int)(captchaX + ( sin(captchaX * 7/15 + 8/15) + sin(captchaY * 9/15 + 10/15) ) * 7/11);
+                int y0 = (int) (captchaY + ( sin(captchaX * 9/15 + 7/15) + sin(captchaY * 8/15 + 8/15) ) * 10/15);
+                if(x0 < 0 || y0 < 0 || x0 >= bufferedImage.getWidth() - 1 || y0 >= bufferedImage.getHeight() - 1){
+                    captchaImage.setRGB(captchaX,captchaY, 1677725);
+                }else{
+                    captchaImage.setRGB(captchaX,captchaY,bufferedImage.getRGB(x0,y0));
+                }
+            }
+        }
         g2d.dispose();
 
-        return bufferedImage;
+        return captchaImage;
     }
 
 }

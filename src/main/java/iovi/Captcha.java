@@ -41,49 +41,67 @@ public class Captcha {
     }
 
     BufferedImage CreateCaptchaImageFromString(String string){
-        BufferedImage bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = bufferedImage.createGraphics();
         Font font = new Font("Arial", Font.PLAIN, 48);
-        g2d.setFont(font);
-        FontMetrics fm = g2d.getFontMetrics();
-        int width = fm.stringWidth(string);
-        int height = fm.getHeight();
-        g2d.dispose();
+        BufferedImage textImage=CreateImageFromString(string,font);
+        BufferedImage captchaImage=CreateDistortedImage(textImage);
 
-        bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        g2d = bufferedImage.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-        g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g2d.setFont(font);
-        fm = g2d.getFontMetrics();
-        g2d.setColor(Color.BLACK);
-        g2d.drawString(string, 0, fm.getAscent());
+        Graphics2D captchaGrapphics = captchaImage.createGraphics();
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        captchaGrapphics.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        captchaGrapphics.dispose();
+        return captchaImage;
+    }
 
-        BufferedImage captchaImage=new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage CreateDistortedImage(BufferedImage originalImage){
+        BufferedImage distortedImage=new BufferedImage(originalImage.getWidth(), originalImage.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
         Random random=new Random();
-        int random1=700000+random.nextInt(300000) / 15000000;
+        double w1=random.nextDouble()*0.1+0.05;
+        double w2=random.nextDouble()*0.1+0.05;
+        double t1=random.nextDouble()*3.14;
+        double t2=random.nextDouble()*3.14;
+        double a1=random.nextDouble()*2+5;
+        double a2=random.nextDouble()*2+5;
 
+        for(int distortedX = 0; distortedX < originalImage.getWidth(); distortedX++) {
 
-        for(int captchaX = 0; captchaX < bufferedImage.getWidth(); captchaX++){
-            for(int captchaY = 0; captchaY < bufferedImage.getHeight(); captchaY++) {
-                int x0 = (int)(captchaX + ( sin(captchaX * 7/15 + 8/15) + sin(captchaY * 9/15 + 10/15) ) * 7/11);
-                int y0 = (int) (captchaY + ( sin(captchaX * 9/15 + 7/15) + sin(captchaY * 8/15 + 8/15) ) * 10/15);
-                if(x0 < 0 || y0 < 0 || x0 >= bufferedImage.getWidth() - 1 || y0 >= bufferedImage.getHeight() - 1){
-                    captchaImage.setRGB(captchaX,captchaY, 1677725);
-                }else{
-                    captchaImage.setRGB(captchaX,captchaY,bufferedImage.getRGB(x0,y0));
+            for (int distortedY = 0; distortedY < originalImage.getHeight(); distortedY++) {
+                int originalY = distortedY + (int) (a1 * sin(w1 * distortedX + t1));
+                int originalX = distortedX + (int) (a2 * sin(w2 * distortedY + t2));
+
+                if (originalX < 0 || originalY < 0 || originalX >= originalImage.getWidth() - 1 || originalY >= originalImage.getHeight() - 1) {
+                    distortedImage.setRGB(distortedX, distortedY, 1677725);
+                } else {
+                    distortedImage.setRGB(distortedX, distortedY, originalImage.getRGB(originalX, originalY));
                 }
             }
         }
-        g2d.dispose();
+        return distortedImage;
+    }
 
-        return captchaImage;
+    BufferedImage CreateImageFromString(String string, Font font){
+        BufferedImage bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D textGrapphics = bufferedImage.createGraphics();
+
+        textGrapphics.setFont(font);
+        FontMetrics fm = textGrapphics.getFontMetrics();
+        int width = fm.stringWidth(string);
+        int height = fm.getHeight();
+        textGrapphics.dispose();
+
+        bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        textGrapphics = bufferedImage.createGraphics();
+        textGrapphics.setColor(Color.BLACK);
+        textGrapphics.setFont(font);
+        textGrapphics.drawString(string, 0, fm.getAscent());
+        textGrapphics.dispose();
+        return bufferedImage;
     }
 
 }

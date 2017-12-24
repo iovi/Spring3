@@ -9,20 +9,25 @@ import java.util.Random;
 import static java.lang.Math.sin;
 
 public class Captcha {
-    int id;
-    String text;
-    BufferedImage image;
+    private String text;
+    private BufferedImage image;
 
-    public Captcha(int id, int textLength){
-        this.id=id;
-        text=GetRandomWord(textLength);
+
+    public Captcha(int textLength){
+        text=getRandomWord(textLength);
 
         Font font = new Font("Arial", Font.PLAIN, 48);
-        BufferedImage textImage=ImageHelper.CreateImageFromString(text,font);
-        image=ImageHelper.CreateDistortedImage(textImage);
+        BufferedImage textImage=ImageHelper.createImageFromString(text,font);
+        image=ImageHelper.createDistortedImage(textImage);
     }
 
-    private static String GetRandomWord(int textLength){
+    public String getText(){
+        return text;
+    }
+    public BufferedImage getImage(){
+        return image;
+    }
+    private static String getRandomWord(int textLength){
         if (textLength<=0) return null;
 
         char[] word=new char[textLength];

@@ -13,9 +13,9 @@ import static java.lang.Math.sin;
 public class ImageHelper {
 
     /**
-     * Создает новое искаженное изображение BufferedImage из оригинального.
+     * Создает новое искаженное изображение BufferedImage из оригинального.<br>
      * Пикселю нового изображения с координатами (xD,yD) устанавливается
-     * цвет пикселя оригинального изображения с координатами (x0, y0).
+     * цвет пикселя оригинального изображения с координатами (x0, y0). <br>
      * Координаты вычисляются по формулам:<br>
      *  y0=a1*sin(w1*x+t1)<br>
      *  x0=a2*sin(w2*y+t2)<br>
@@ -23,7 +23,7 @@ public class ImageHelper {
      * a1 ∈ [5;7], a2 ∈ [5;7], w1 ∈ [0.05;0.15] w2 ∈ [0.05;0.15], t1 ∈ [0;3.14], t2 ∈ [0;3.14]
      */
 
-    static BufferedImage CreateDistortedImage(BufferedImage originalImage){
+    public static BufferedImage createDistortedImage(BufferedImage originalImage){
         BufferedImage distortedImage=new BufferedImage(originalImage.getWidth(), originalImage.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
         Random random=new Random();
@@ -54,13 +54,13 @@ public class ImageHelper {
      * Создает изображение, в котором выведен указанный текст в указанном шрифте.
      * Фон белый, цвет текста черный.
      */
-    static BufferedImage CreateImageFromString(String string, Font font){
+    public static BufferedImage createImageFromString(String text, Font font){
         BufferedImage bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D textGraphics = bufferedImage.createGraphics();
 
         textGraphics.setFont(font);
         FontMetrics fm = textGraphics.getFontMetrics();
-        int width = fm.stringWidth(string);
+        int width = fm.stringWidth(text);
         int height = fm.getHeight();
         textGraphics.dispose();
 
@@ -68,7 +68,7 @@ public class ImageHelper {
         textGraphics = bufferedImage.createGraphics();
         textGraphics.setColor(Color.BLACK);
         textGraphics.setFont(font);
-        textGraphics.drawString(string, 0, fm.getAscent());
+        textGraphics.drawString(text, 0, fm.getAscent());
         textGraphics.dispose();
         return bufferedImage;
     }

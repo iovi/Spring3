@@ -23,7 +23,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    CaptchaService captchaService=new CaptchaService(1000*60);
+    static final int TIMEOUT=60000;
+    CaptchaService captchaService=new CaptchaService(TIMEOUT);
 
     @RequestMapping(value = "/captcha", method = GET)
     public void getCaptchaAsByteArray(HttpServletResponse response) throws IOException {
@@ -38,7 +39,7 @@ public class CaptchaController {
         response.setHeader("captcha-text",captchaWithId.getValue().getText());
 
     }
-    @RequestMapping(value = "/check", method = POST)
+    @RequestMapping(value = "/captcha", method = POST)
     public String checkCaptcha(@RequestParam(value="text") String captchaText,
                              @RequestParam(value="id") String id,
                              Model model) throws IOException {
@@ -51,6 +52,7 @@ public class CaptchaController {
           return "Correct";
       }
       else {
+          model.addAttribute("timeout",TIMEOUT/1000);
           return "Error";
       }
     }

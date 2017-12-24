@@ -53,7 +53,7 @@ public class CaptchaService{
         if (captchaData==null)
             return false;
         if (captchaData.getCaptchaText().equals(captchaText) &&
-                captchaData.getCreationTime().getTime()+timeout< new Date().getTime()){
+                captchaData.getCreationTime().getTime()+timeout> new Date().getTime()){
             captchas.remove(captchaId);
             return true;
         }

@@ -1,0 +1,11 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Captcha Web-Service</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p>The captcha is so </p>
+<img th:src="'http://localhost:8080/captcha/'+${captchaId}"/>
+</body>
+</html>

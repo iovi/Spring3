@@ -3,27 +3,29 @@ package iovi;
 
 import javafx.util.Pair;
 
+import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class CaptchaService{
 
-    private class CaptchaData extends Object{
-        String captchaText;
+    private class CaptchaWithCreationTime extends Object{
+        Captcha captcha;
         Date creationTime;
-        public CaptchaData(String captchaText){
-            this.captchaText=captchaText;
+        public CaptchaWithCreationTime(Captcha captcha){
+            this.captcha=captcha;
             this.creationTime=Calendar.getInstance().getTime();
         }
-        public String getCaptchaText(){
-            return captchaText;
+        public Captcha getCaptcha(){
+            return captcha;
         }
         public Date getCreationTime(){
             return creationTime;
         }
     }
+
     long timeout;
-    Map<String,CaptchaData> captchas;
+    Map<String,CaptchaWithCreationTime> captchas;
 
     public CaptchaService(long timeoutInMs){
         captchas =new HashMap<>();
@@ -33,8 +35,8 @@ public class CaptchaService{
     public Pair<String,Captcha> getNewCaptcha(){
         Captcha captcha=new Captcha(6);
         String uid= UUID.randomUUID().toString();
-        CaptchaData captchaData=new CaptchaData(captcha.getText());
-        captchas.put(uid,captchaData);
+
+        captchas.put(uid,new CaptchaWithCreationTime(captcha));
         return new Pair(uid,captcha);
     }
 
@@ -43,20 +45,23 @@ public class CaptchaService{
             textLength=6;
         Captcha captcha=new Captcha(textLength);
         String uid= UUID.randomUUID().toString();
-        CaptchaData captchaData=new CaptchaData(captcha.getText());
+        CaptchaWithCreationTime captchaData=new CaptchaWithCreationTime(captcha);
         captchas.put(uid,captchaData);
         return new Pair(uid,captcha);
     }
 
     public boolean checkCaptchaText(String captchaId, String captchaText){
-        CaptchaData captchaData= captchas.get(captchaId);
+        CaptchaWithCreationTime captchaData= captchas.get(captchaId);
         if (captchaData==null)
             return false;
-        if (captchaData.getCaptchaText().equals(captchaText) &&
+        if (captchaData.getCaptcha().getText().equals(captchaText) &&
                 captchaData.getCreationTime().getTime()+timeout> new Date().getTime()){
             captchas.remove(captchaId);
             return true;
         }
         else return false;
+    }
+    public BufferedImage getCaptchaImage(String uid){
+        return captchas.get(uid).getCaptcha().getImage();
     }
 }

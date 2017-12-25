@@ -1,8 +1,6 @@
 package iovi;
 
 
-import javafx.util.Pair;
-
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -32,22 +30,29 @@ public class CaptchaService{
         timeout=timeoutInMs;
     }
 
-    public Pair<String,Captcha> getNewCaptcha(){
+    public String getNewCaptchaId(){
         Captcha captcha=new Captcha(6);
         String uid= UUID.randomUUID().toString();
 
         captchas.put(uid,new CaptchaWithCreationTime(captcha));
-        return new Pair(uid,captcha);
+        return uid;
     }
 
-    public Pair<String,Captcha> getNewCaptcha(int textLength){
+    public String getNewCaptchaId(int textLength){
         if (textLength<6)
             textLength=6;
         Captcha captcha=new Captcha(textLength);
         String uid= UUID.randomUUID().toString();
         CaptchaWithCreationTime captchaData=new CaptchaWithCreationTime(captcha);
         captchas.put(uid,captchaData);
-        return new Pair(uid,captcha);
+        return uid;
+    }
+    public String getCaptchaText(String captchaId){
+        return captchas.get(captchaId).getCaptcha().getText();
+    }
+
+    public BufferedImage getCaptchaImage(String uid){
+        return captchas.get(uid).getCaptcha().getImage();
     }
 
     public boolean checkCaptchaText(String captchaId, String captchaText){
@@ -61,7 +66,5 @@ public class CaptchaService{
         }
         else return false;
     }
-    public BufferedImage getCaptchaImage(String uid){
-        return captchas.get(uid).getCaptcha().getImage();
-    }
+
 }

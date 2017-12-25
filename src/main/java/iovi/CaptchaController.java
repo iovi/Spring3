@@ -1,7 +1,6 @@
 package iovi;
 
 
-import javafx.util.Pair;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -40,11 +39,11 @@ public class CaptchaController {
 
     @RequestMapping(value = "/captcha", method = GET)
     public String getCaptcha(HttpServletResponse response,Model model) {
-        Pair<String,Captcha>  captchaWithId =captchaService.getNewCaptcha();
-        model.addAttribute("captchaId",captchaWithId.getKey());
+        String captchaId =captchaService.getNewCaptchaId();
+        model.addAttribute("captchaId",captchaId);
 
-        response.setHeader("captcha-id",captchaWithId.getKey());
-        response.setHeader("captcha-text",captchaWithId.getValue().getText());
+        response.setHeader("captcha-id",captchaId);
+        response.setHeader("captcha-text",captchaService.getCaptchaText(captchaId));
         return "Captcha";
     }
 

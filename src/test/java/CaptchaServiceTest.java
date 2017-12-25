@@ -1,6 +1,5 @@
 import iovi.Captcha;
 import iovi.CaptchaService;
-import javafx.util.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,58 +17,55 @@ public class CaptchaServiceTest {
     @Test
     public void getsNotNullCaptcha(){
 
+        String captchaId1=captchaService.getNewCaptchaId();
+        assertFalse(captchaId1==null);
+        assertFalse(captchaService.getCaptchaText(captchaId1)==null);
+        assertFalse(captchaService.getCaptchaImage(captchaId1)==null);
 
-        Pair<String,Captcha> captchaWithId1=captchaService.getNewCaptcha();
-        assertFalse(captchaWithId1.getKey()==null);
-        assertFalse(captchaWithId1.getValue().getText()==null);
-        assertFalse(captchaWithId1.getValue().getImage()==null);
-
-        Pair<String,Captcha> captchaWithId2=captchaService.getNewCaptcha(10);
-        assertFalse(captchaWithId2.getKey()==null);
-        assertFalse(captchaWithId2.getValue().getText()==null);
-        assertFalse(captchaWithId2.getValue().getImage()==null);
+        String captchaId2=captchaService.getNewCaptchaId(10);
+        assertFalse(captchaId2==null);
+        assertFalse(captchaService.getCaptchaText(captchaId2)==null);
+        assertFalse(captchaService.getCaptchaImage(captchaId2)==null);
     }
 
     @Test
     public void getsValidLengthCaptcha(){
 
-        Pair<String,Captcha> captchaWithId=captchaService.getNewCaptcha();
-
-        assertEquals(captchaWithId.getValue().getText().length(),6);
+        String captchaId=captchaService.getNewCaptchaId();
+        assertEquals(captchaService.getCaptchaText(captchaId).length(),6);
 
         for (int i=-1;i<20;i++) {
-            captchaWithId = captchaService.getNewCaptcha(i);
+            captchaId = captchaService.getNewCaptchaId(i);
             if (i <= 6)
-                assertEquals(captchaWithId.getValue().getText().length(), 6);
+                assertEquals(captchaService.getCaptchaText(captchaId).length(), 6);
             else
-                assertEquals(captchaWithId.getValue().getText().length(), i);
+                assertEquals(captchaService.getCaptchaText(captchaId).length(), i);
         }
     }
     @Test
     public void checksCaptchaText(){
-        Pair<String,Captcha> captchaWithId=captchaService.getNewCaptcha();
-        assertTrue(captchaService.checkCaptchaText(captchaWithId.getKey(),captchaWithId.getValue().getText()));
+        String captchaId=captchaService.getNewCaptchaId();
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
 
-        StringBuilder incorrectText = new StringBuilder(captchaWithId.getValue().getText());
+        StringBuilder incorrectText = new StringBuilder(captchaService.getCaptchaText(captchaId));
         incorrectText.setCharAt(0, (char)(incorrectText.charAt(0)+1));
-        assertFalse(captchaService.checkCaptchaText(captchaWithId.getKey(),incorrectText.toString()));
+        assertFalse(captchaService.checkCaptchaText(captchaId,incorrectText.toString()));
 
-        assertFalse(captchaService.checkCaptchaText(captchaWithId.getKey(), null));
-        assertFalse(captchaService.checkCaptchaText(null, captchaWithId.getValue().getText()));
+        assertFalse(captchaService.checkCaptchaText(captchaId, null));
     }
 
     @Test
     public void checksTimeout() throws InterruptedException{
-        Pair<String,Captcha> captchaWithId=captchaService.getNewCaptcha();
+        String captchaId=captchaService.getNewCaptchaId();
         Thread.sleep(timeout+1);
-        assertFalse(captchaService.checkCaptchaText(captchaWithId.getKey(),captchaWithId.getValue().getText()));
+        assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
     }
 
     @Test
     public void checksManyCallings(){
-        Pair<String,Captcha> captchaWithId=captchaService.getNewCaptcha();
-        assertTrue(captchaService.checkCaptchaText(captchaWithId.getKey(),captchaWithId.getValue().getText()));
-        assertFalse(captchaService.checkCaptchaText(captchaWithId.getKey(),captchaWithId.getValue().getText()));
+        String captchaId=captchaService.getNewCaptchaId();
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
+        assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
     }
 
     @Test
@@ -77,8 +73,8 @@ public class CaptchaServiceTest {
     public void  worksWithMultithreading() {
         for(int i=0;i<50;i++){
             Runnable captchaUser= () -> {
-                    Pair<String,Captcha> captchaWithId=captchaService.getNewCaptcha();
-                    assertTrue(captchaService.checkCaptchaText(captchaWithId.getKey(),captchaWithId.getValue().getText()));
+                    String captchaId=captchaService.getNewCaptchaId();
+                    assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
             };
             new Thread(captchaUser).start();
         }

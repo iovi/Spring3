@@ -5,7 +5,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<p>The captcha is so </p>
-<img th:src="'http://localhost:8080/captcha/'+${captchaId}"/>
+<p>The captcha is</p>
+<img th:src="${imageURL}"/>
+<form method="post" th:action="${postURL}" id="checking_form">
+    <input type="text" name="text" value=""/>
+    <input type="hidden" name="id" th:value="${captchaId}"/>
+</form>
+<button type="submit" form="checking_form">Check</button>
 </body>
 </html>

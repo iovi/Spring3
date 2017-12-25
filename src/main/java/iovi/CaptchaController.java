@@ -2,6 +2,7 @@ package iovi;
 
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,8 +39,10 @@ public class CaptchaController {
     }
 
     @RequestMapping(value = "/captcha", method = GET)
-    public String getCaptcha(HttpServletResponse response,Model model) {
+    public String getCaptcha(HttpServletRequest request, HttpServletResponse response, Model model) {
         String captchaId =captchaService.getNewCaptchaId();
+        model.addAttribute("imageURL",request.getRequestURL().toString()+"/"+captchaId);
+        model.addAttribute("postURL",request.getRequestURL().toString()+"/check");
         model.addAttribute("captchaId",captchaId);
 
         response.setHeader("captcha-id",captchaId);
@@ -47,7 +50,7 @@ public class CaptchaController {
         return "Captcha";
     }
 
-    @RequestMapping(value = "/captcha", method = POST)
+    @RequestMapping(value = "/captcha/check", method = POST)
     public String checkCaptcha(@RequestParam(value="text") String captchaText,
                              @RequestParam(value="id") String id,
                              Model model) throws IOException {

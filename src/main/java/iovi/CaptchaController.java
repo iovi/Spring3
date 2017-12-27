@@ -27,6 +27,7 @@ public class CaptchaController {
     static final int TIMEOUT=60000;
     CaptchaService captchaService=new CaptchaService(TIMEOUT);
 
+    /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)
     public void getCaptchaAsByteArray(@PathVariable("captchaId") String captchaId,
                                       HttpServletResponse response) throws IOException {
@@ -38,6 +39,16 @@ public class CaptchaController {
         IOUtils.copy(inputStream, response.getOutputStream());
     }
 
+
+    /**
+     * <p>Метод для вывода страницы c новой captcha-картинкой. Картинка получается дополнительным запросом на
+     * {@link #getCaptchaAsByteArray(String, HttpServletResponse) getCaptchaAsByteArray} </p>
+     * <p>В ответе на запрос присутствуют дополнительные заголовки</p>
+     * <ul>
+     *     <li>captcha-id - идентификатор captcha-картинки</li>
+     *     <li>captcha-text - разгадка для captcha (для упрощения тестирования )</li>
+     * </ul>
+     * */
     @RequestMapping(value = "/captcha", method = GET)
     public String getCaptcha(HttpServletRequest request, HttpServletResponse response, Model model) {
         String captchaId =captchaService.getNewCaptchaId();
@@ -50,6 +61,12 @@ public class CaptchaController {
         return "Captcha";
     }
 
+
+    /** Метод для проверки разгадки captcha-картинки
+     * @param id идентификатор captcha-картинки, переданный в заголовке ответа на
+     * {@link #getCaptcha(HttpServletRequest, HttpServletResponse,Model) getCaptcha}
+     *@param captchaText разгадка captcha-картинки, подлежащая проверке
+     * */
     @RequestMapping(value = "/captcha/check", method = POST)
     public String checkCaptcha(@RequestParam(value="text") String captchaText,
                              @RequestParam(value="id") String id,
@@ -64,7 +81,7 @@ public class CaptchaController {
       }
       else {
           model.addAttribute("timeout",TIMEOUT/1000);
-          return "Error";
+          return "Wrong";
       }
     }
 

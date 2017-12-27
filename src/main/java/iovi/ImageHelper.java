@@ -7,22 +7,19 @@ import java.util.Random;
 
 import static java.lang.Math.sin;
 
-/**
- * Помощник при работе с изображениями
- */
+/** Помощник при работе с изображениями*/
 public class ImageHelper {
 
     /**
-     * Создает новое искаженное изображение BufferedImage из оригинального.<br>
-     * Пикселю нового изображения с координатами (xD,yD) устанавливается
-     * цвет пикселя оригинального изображения с координатами (x0, y0). <br>
-     * Координаты вычисляются по формулам:<br>
+     * <p>Создает новое искаженное изображение BufferedImage из оригинального.</p>
+     * <p>Пикселю нового изображения с координатами (xD,yD) устанавливается
+     * цвет пикселя оригинального изображения с координатами (x0, y0). </p>
+     * <p>Координаты вычисляются по формулам:</p>
      *  y0=a1*sin(w1*x+t1)<br>
      *  x0=a2*sin(w2*y+t2)<br>
-     * где a1,a2,w1,w2,t1,t2 - случайные коэффициенты:
-     * a1 ∈ [5;7], a2 ∈ [5;7], w1 ∈ [0.05;0.15] w2 ∈ [0.05;0.15], t1 ∈ [0;3.14], t2 ∈ [0;3.14]
+     * <p>где a1,a2,w1,w2,t1,t2 - случайные коэффициенты:
+     * a1 ∈ [5;7], a2 ∈ [5;7], w1 ∈ [0.05;0.15] w2 ∈ [0.05;0.15], t1 ∈ [0;3.14], t2 ∈ [0;3.14]</p>
      */
-
     public static BufferedImage createDistortedImage(BufferedImage originalImage){
         BufferedImage distortedImage=new BufferedImage(originalImage.getWidth(), originalImage.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
@@ -51,8 +48,10 @@ public class ImageHelper {
     }
 
     /**
-     * Создает изображение, в котором выведен указанный текст в указанном шрифте.
-     * Фон белый, цвет текста черный.
+     * Создает изображение BufferedImage, в котором выведен указанный текст в указанном шрифте.
+     * У возвращаемого изображения будет прозрачный фон, черный цвет текста.
+     * @param text текст, который будет выведен в изображении
+     * @param font шрифт вывода. Рекомендуется указывать Arial, кегль 48
      */
     public static BufferedImage createImageFromString(String text, Font font){
         BufferedImage bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);

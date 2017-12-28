@@ -1,7 +1,5 @@
 package iovi;
-/**
- * Created by operator on 15.12.2017.
- */
+
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.SpringApplication;

@@ -14,70 +14,57 @@ public class CaptchaServiceTest {
         captchaService=new CaptchaService(timeout);
     }
 
+    /**Тест создания ненулевой Captcha*/
     @Test
-    public void getsNotNullCaptcha(){
-
-        String captchaId1=captchaService.getNewCaptchaId();
-        assertFalse(captchaId1==null);
-        assertFalse(captchaService.getCaptchaText(captchaId1)==null);
-        assertFalse(captchaService.getCaptchaImage(captchaId1)==null);
-
-        String captchaId2=captchaService.getNewCaptchaId(10);
-        assertFalse(captchaId2==null);
-        assertFalse(captchaService.getCaptchaText(captchaId2)==null);
-        assertFalse(captchaService.getCaptchaImage(captchaId2)==null);
-    }
-
-    @Test
-    public void getsValidLengthCaptcha(){
+    public void getNotNullCaptcha(){
 
         String captchaId=captchaService.getNewCaptchaId();
-        assertEquals(captchaService.getCaptchaText(captchaId).length(),6);
-
-        for (int i=-1;i<20;i++) {
-            captchaId = captchaService.getNewCaptchaId(i);
-            if (i <= 6)
-                assertEquals(captchaService.getCaptchaText(captchaId).length(), 6);
-            else
-                assertEquals(captchaService.getCaptchaText(captchaId).length(), i);
-        }
+        assertFalse(captchaId==null);
+        assertFalse(captchaService.getCaptchaText(captchaId)==null);
+        assertFalse(captchaService.getCaptchaImage(captchaId)==null);
     }
-    @Test
-    public void checksCaptchaText(){
-        String captchaId=captchaService.getNewCaptchaId();
-        assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
 
-        StringBuilder incorrectText = new StringBuilder(captchaService.getCaptchaText(captchaId));
+
+    /**
+     * Тест проверки текста методом checkCaptchaText(String,String).
+     * Выдает true на совпадающий верный текст, false - на несовпадающий
+     */
+    @Test
+    public void checkCaptchaText_ValidText(){
+        String captchaId=captchaService.getNewCaptchaId();
+        String captchaText=captchaService.getCaptchaText(captchaId);
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
+
+        StringBuilder incorrectText = new StringBuilder(captchaText);
         incorrectText.setCharAt(0, (char)(incorrectText.charAt(0)+1));
         assertFalse(captchaService.checkCaptchaText(captchaId,incorrectText.toString()));
 
         assertFalse(captchaService.checkCaptchaText(captchaId, null));
     }
 
+    /**
+     * Тест проверки истечения таймаута методом checkCaptchaText(String,String).
+     * Выдает true до таймаута, false после таймаута
+     */
     @Test
-    public void checksTimeout() throws InterruptedException{
+    public void checkCaptchaText_PassTimeout() throws InterruptedException{
         String captchaId=captchaService.getNewCaptchaId();
-        Thread.sleep(timeout+1);
-        assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
-    }
-
-    @Test
-    public void checksManyCallings(){
-        String captchaId=captchaService.getNewCaptchaId();
+        Thread.sleep(timeout-10);
         assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
+        Thread.sleep(20);
         assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
     }
 
+    /**
+     * Тест проверки количества вызовов истечения методом checkCaptchaText(String,String).
+     * Выдает true при первой проверке, false при второй с теми же входными данными
+     */
     @Test
-
-    public void  worksWithMultithreading() {
-        for(int i=0;i<50;i++){
-            Runnable captchaUser= () -> {
-                    String captchaId=captchaService.getNewCaptchaId();
-                    assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
-            };
-            new Thread(captchaUser).start();
-        }
+    public void checkCaptchaText_SecondCall(){
+        String captchaId=captchaService.getNewCaptchaId();
+        String captchaText=captchaService.getCaptchaText(captchaId);
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
+        assertFalse(captchaService.checkCaptchaText(captchaId,captchaText));
     }
 
 

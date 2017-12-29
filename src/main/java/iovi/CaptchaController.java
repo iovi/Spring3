@@ -69,8 +69,9 @@ public class CaptchaController {
      * */
     @RequestMapping(value = "/captcha/check", method = POST)
     public String checkCaptcha(@RequestParam(value="text") String captchaText,
-                             @RequestParam(value="id") String id,
-                             Model model) throws IOException {
+                               @RequestParam(value="id") String id,
+                               HttpServletResponse response,
+                               Model model) throws IOException {
 
 
       boolean result=captchaService.checkCaptchaText(id,captchaText);
@@ -81,6 +82,7 @@ public class CaptchaController {
       }
       else {
           model.addAttribute("timeout",TIMEOUT/1000);
+          response.setStatus(422);
           return "Wrong";
       }
     }

@@ -34,25 +34,22 @@ public class CaptchaServiceTest {
     public void checkCaptchaText_ValidText(){
         String captchaId=captchaService.getNewCaptchaId();
         String captchaText=captchaService.getCaptchaText(captchaId);
-        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
-
         StringBuilder incorrectText = new StringBuilder(captchaText);
         incorrectText.setCharAt(0, (char)(incorrectText.charAt(0)+1));
         assertFalse(captchaService.checkCaptchaText(captchaId,incorrectText.toString()));
-
         assertFalse(captchaService.checkCaptchaText(captchaId, null));
+
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
     }
 
     /**
      * Тест проверки истечения таймаута методом checkCaptchaText(String,String).
-     * Выдает true до таймаута, false после таймаута
+     * Выдает false после таймаута
      */
     @Test
     public void checkCaptchaText_PassTimeout() throws InterruptedException{
         String captchaId=captchaService.getNewCaptchaId();
-        Thread.sleep(timeout-10);
-        assertTrue(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
-        Thread.sleep(20);
+        Thread.sleep(timeout+10);
         assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
     }
 

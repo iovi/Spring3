@@ -1,5 +1,4 @@
 import iovi.Main;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -17,7 +16,9 @@ public class FunctionalTest {
         Main.main(args);
     }
 
-    /**Проверка работы приложения с одним отправщиком запросов*/
+    /**
+     * Проверка работы приложения с одним отправщиком запросов
+     * */
     @Test
     public void oneSenderWorks(){
         CaptchaRequestSender sender=new CaptchaRequestSender();
@@ -48,7 +49,11 @@ public class FunctionalTest {
         }
     }
 
-
+    /**
+     * <p>Проверка контроля приложением текста captcha</p>
+     * <p>При отправке на {@link #CHECK_URL} текста из предварительного запроса на {@link #GET_URL} - возвращается статус 200.
+     * При отправке другого текста - ошибка 422</p>
+     * */
     @Test
     public void checksValidText(){
         CaptchaRequestSender sender = new CaptchaRequestSender();
@@ -66,6 +71,10 @@ public class FunctionalTest {
         assertEquals(200, sender.checkCaptchaByStoredData(CHECK_URL));
     }
 
+    /**
+     * <p>Проверка контроля приложением таймаута</p>
+     * <p>Запрос на {@link #CHECK_URL} с корректыми данными выдает ошибку 422 после таймаута</p>
+     * */
     @Test
     public void checksTimeout(){
         CaptchaRequestSender sender = new CaptchaRequestSender();
@@ -78,6 +87,10 @@ public class FunctionalTest {
         assertEquals(422, sender.checkCaptchaByStoredData(CHECK_URL));
     }
 
+    /**
+     * <p>Проверка контроля приложением количества вызовов</p>
+     * <p>Первый запрос {@link #CHECK_URL} возвращает одобренный статус 200, второй - 422</p>
+     * */
     @Test
     public void checksSecondCall(){
         CaptchaRequestSender sender = new CaptchaRequestSender();

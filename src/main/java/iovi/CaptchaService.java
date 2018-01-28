@@ -4,25 +4,14 @@ package iovi;
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Collections.synchronizedMap;
 
 /**Сервис для работы с captcha */
 public class CaptchaService{
 
-    /**Вспомогательный класс для хранения captcha и времени ее создания */
-    private class CaptchaWithCreationTime extends Object{
-        Captcha captcha;
-        Date creationTime;
-        public CaptchaWithCreationTime(Captcha captcha){
-            this.captcha=captcha;
-            this.creationTime=Calendar.getInstance().getTime();
-        }
-        public Captcha getCaptcha(){
-            return captcha;
-        }
-        public Date getCreationTime(){
-            return creationTime;
-        }
-    }
+
 
     /**таймаут ожидания проверки captcha в мс*/
     long timeout;
@@ -36,11 +25,14 @@ public class CaptchaService{
      * Значение игнорируется, если оно меньше {@link #MIN_TIMEOUT}, в качестве таймаута устанавливается {@link #MIN_TIMEOUT}
      */
     public CaptchaService(long timeoutInMs){
-        captchas =new HashMap<>();
+        captchas = synchronizedMap(new HashMap());
         if (timeoutInMs<MIN_TIMEOUT)
             timeout=MIN_TIMEOUT;
         else
             timeout=timeoutInMs;
+
+        RemovingThread remover=new RemovingThread(captchas,MIN_TIMEOUT,60000);
+        remover.start();
     }
 
     /**

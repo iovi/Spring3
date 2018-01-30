@@ -8,10 +8,10 @@ import java.util.Random;
 public class Captcha {
     /**Текст captcha*/
     private String text;
-    /**Картинка captcha*/
-    private BufferedImage image;
     /**Минимально допустимая длина текста captcha*/
     final static int MIN_LENGTH=6;
+
+    private boolean isShown;
 
     /**Создает новую captсha с текстом заданной длины
      * @param textLength длина текста, минимальное значние {@link #MIN_LENGTH}.
@@ -21,25 +21,28 @@ public class Captcha {
             text=getRandomWord(MIN_LENGTH);
         else
             text=getRandomWord(textLength);
-
-        Font font = new Font("Arial", Font.PLAIN, 48);
-        BufferedImage textImage=ImageHelper.createImageFromString(text,font);
-        image=ImageHelper.createDistortedImage(textImage);
+        isShown=false;
     }
 
     /**Создает новую captсha с текстом длины {@link #MIN_LENGTH}*/
     public Captcha(){
         text=getRandomWord(MIN_LENGTH);
-        Font font = new Font("Arial", Font.PLAIN, 48);
-        BufferedImage textImage=ImageHelper.createImageFromString(text,font);
-        image=ImageHelper.createDistortedImage(textImage);
+        isShown=false;
     }
 
     public String getText(){
         return text;
     }
-    public BufferedImage getImage(){
-        return image;
+
+    public synchronized BufferedImage getImage(){
+        if (!isShown){
+            isShown=true;
+            Font font = new Font("Arial", Font.PLAIN, 48);
+            BufferedImage textImage=ImageHelper.createImageFromString(text,font);
+            return ImageHelper.createDistortedImage(textImage);
+        } else
+            return new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);
+
     }
 
     /**Создает случайный текст заданной длины из больших и маленьких латинских символов и цифр.*/

@@ -18,6 +18,7 @@ public class CaptchaService{
 
     /**минимально допустимое значние таймаута {@link #timeout}*/
     final static long MIN_TIMEOUT=1000;
+    final static long REMOVE_PERIOD=60000;
     Map<String,CaptchaWithCreationTime> captchas;
 
     /**
@@ -31,7 +32,7 @@ public class CaptchaService{
         else
             timeout=timeoutInMs;
 
-        RemovingThread remover=new RemovingThread(captchas,MIN_TIMEOUT,60000);
+        RemovingThread remover=new RemovingThread(captchas,timeoutInMs,REMOVE_PERIOD);
         remover.start();
     }
 

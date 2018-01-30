@@ -21,7 +21,7 @@ public class RemovingThread extends Thread {
         Iterator<Map.Entry<String,CaptchaWithCreationTime>> iterator;
         for(iterator=captchas.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String,CaptchaWithCreationTime> entry = iterator.next();
-            if(entry.getValue().creationTime.getTime()+timeout> new Date().getTime()) {
+            if(entry.getValue().creationTime.getTime()+timeout< new Date().getTime()) {
                 iterator.remove();
             }
         }

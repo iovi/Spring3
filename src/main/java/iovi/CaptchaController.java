@@ -48,10 +48,35 @@ public class CaptchaController {
     @RequestMapping(value = "/client/register", method = POST)
     public @ResponseBody JSONObject register() throws IOException {
         ClientData clientData=clientService.registerClient();
-        JSONObject answer  = new JSONObject();
-        answer.put("secret",clientData.getSecretKey());
-        answer.put("public",clientData.getPublicKey());
-        return answer;
+        JSONObject json  = new JSONObject();
+        json.put("secret",clientData.getSecretKey());
+        json.put("public",clientData.getPublicKey());
+        return json;
+    }
+    /** Метод инициирующий проверку пользователя*/
+    @RequestMapping(value = "/captcha/new", method = GET)
+    public @ResponseBody JSONObject initiate(@RequestParam("public") String publicKey) throws IOException {
+        String captchaId =captchaService.getNewCaptchaId();
+        JSONObject json  = new JSONObject();
+        json.put("request",captchaId);
+        json.put("answer",captchaService.getCaptchaText(captchaId));
+        return json;
+    }
+
+    /** Метод для вывода страницы c новой captcha-картинкой*/
+    @RequestMapping(value = "/captcha/image", method = GET)
+    public @ResponseBody String getCaptcha(@RequestParam("public") String publicKey,
+                                           @RequestParam("request") String captchaId,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           Model model) throws IOException {
+        model.addAttribute("imageURL",request.getRequestURL().toString().replace("/captcha/image","/captcha/"+captchaId));
+        model.addAttribute("postURL",request.getRequestURL().toString().replace("/captcha/image","/check"));
+        model.addAttribute("captchaId",captchaId);
+
+        response.setHeader("captcha-id",captchaId);
+        response.setHeader("captcha-text",captchaService.getCaptchaText(captchaId));
+        return "Captcha";
     }
 
     /**

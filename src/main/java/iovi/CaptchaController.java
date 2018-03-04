@@ -2,6 +2,7 @@ package iovi;
 
 
 import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONObject;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -9,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -21,11 +23,14 @@ import java.io.InputStream;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import org.json.simple.JSONObject;
+
 @Controller
 public class CaptchaController {
 
     static final int TIMEOUT=60000;
     CaptchaService captchaService=new CaptchaService(TIMEOUT);
+    ClientService clientService=new ClientService();
 
     /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)
@@ -39,6 +44,15 @@ public class CaptchaController {
         IOUtils.copy(inputStream, response.getOutputStream());
     }
 
+    /** Метод регистрации пользователя*/
+    @RequestMapping(value = "/client/register", method = POST)
+    public @ResponseBody JSONObject register() throws IOException {
+        ClientData clientData=clientService.registerClient();
+        JSONObject answer  = new JSONObject();
+        answer.put("secret",clientData.getSecretKey());
+        answer.put("public",clientData.getPublicKey());
+        return answer;
+    }
 
     /**
      * <p>Метод для вывода страницы c новой captcha-картинкой. Картинка получается дополнительным запросом на

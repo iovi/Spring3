@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.lang.System.getProperty;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -59,25 +60,49 @@ public class CaptchaController {
         String captchaId =captchaService.getNewCaptchaId();
         JSONObject json  = new JSONObject();
         json.put("request",captchaId);
-        json.put("answer",captchaService.getCaptchaText(captchaId));
+        if (System.getProperty("production").equals("false"))
+            json.put("answer",captchaService.getCaptchaText(captchaId));
         return json;
     }
 
     /** Метод для вывода страницы c новой captcha-картинкой*/
     @RequestMapping(value = "/captcha/image", method = GET)
-    public @ResponseBody String getCaptcha(@RequestParam("public") String publicKey,
+    public String getImage(@RequestParam("public") String publicKey,
                                            @RequestParam("request") String captchaId,
                                            HttpServletRequest request,
-                                           HttpServletResponse response,
-                                           Model model) throws IOException {
+                                           Model model){
         model.addAttribute("imageURL",request.getRequestURL().toString().replace("/captcha/image","/captcha/"+captchaId));
-        model.addAttribute("postURL",request.getRequestURL().toString().replace("/captcha/image","/check"));
+        model.addAttribute("postURL",request.getRequestURL().toString().replace("/image","/solve"));
         model.addAttribute("captchaId",captchaId);
 
-        response.setHeader("captcha-id",captchaId);
-        response.setHeader("captcha-text",captchaService.getCaptchaText(captchaId));
         return "Captcha";
     }
+
+    @RequestMapping(value = "/captcha/solve", method = POST)
+    public @ResponseBody JSONObject solve(@RequestParam("public") String publicKey,
+                                          @RequestParam(value="answer") String captchaText,
+                                          @RequestParam(value="request") String captchaId,
+                                          HttpServletResponse response) {
+        boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
+        JSONObject json  = new JSONObject();
+        if (result){
+            json.put("response","----dummy----");
+        } else {
+            response.setStatus(422);
+        }
+        return json;
+    }
+
+    @RequestMapping(value = "/captcha/verify", method = GET)
+    public @ResponseBody JSONObject verify(@RequestParam("secret") String secretKey,
+                                          @RequestParam(value="response") String token,
+                                          HttpServletResponse response) {
+        JSONObject json  = new JSONObject();
+        json.put("success",true);
+        json.put("errorCode","");
+        return json;
+    }
+
 
     /**
      * <p>Метод для вывода страницы c новой captcha-картинкой. Картинка получается дополнительным запросом на

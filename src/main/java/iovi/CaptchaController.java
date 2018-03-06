@@ -1,9 +1,10 @@
 package iovi;
 
 
+import iovi.client.ClientData;
+import iovi.client.ClientService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,8 +24,6 @@ import java.io.InputStream;
 import static java.lang.System.getProperty;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
-import org.json.simple.JSONObject;
 
 @Controller
 public class CaptchaController {
@@ -56,26 +55,43 @@ public class CaptchaController {
     }
     /** Метод инициирующий проверку пользователя*/
     @RequestMapping(value = "/captcha/new", method = GET)
-    public @ResponseBody JSONObject initiate(@RequestParam("public") String publicKey) throws IOException {
-        String captchaId =captchaService.getNewCaptchaId();
+    public @ResponseBody JSONObject initiate(@RequestParam("public") String publicKey, HttpServletResponse response) {
         JSONObject json  = new JSONObject();
-        json.put("request",captchaId);
-        if (System.getProperty("production").equals("false"))
-            json.put("answer",captchaService.getCaptchaText(captchaId));
+
+        if (clientService.checkClientExistence(publicKey)){
+            String captchaId =captchaService.getNewCaptchaId();
+            clientService.attachCaptchaToClient(captchaId,publicKey);
+            json.put("request",captchaId);
+            if ("false".equals(System.getProperty("production"))){
+                json.put("answer",captchaService.getCaptchaText(captchaId));
+            } else {
+                json.put("answer",null);
+            }
+        } else{
+            response.setStatus(403);
+            json.put("message","Public key "+publicKey+" is absent. You should go to /client/register first");
+            json.put("request",null);
+            json.put("answer",null);
+        }
         return json;
     }
 
     /** Метод для вывода страницы c новой captcha-картинкой*/
     @RequestMapping(value = "/captcha/image", method = GET)
     public String getImage(@RequestParam("public") String publicKey,
-                                           @RequestParam("request") String captchaId,
-                                           HttpServletRequest request,
-                                           Model model){
-        model.addAttribute("imageURL",request.getRequestURL().toString().replace("/captcha/image","/captcha/"+captchaId));
-        model.addAttribute("postURL",request.getRequestURL().toString().replace("/image","/solve"));
-        model.addAttribute("captchaId",captchaId);
-
-        return "Captcha";
+                           @RequestParam("request") String captchaId,
+                           HttpServletRequest request,
+                           HttpServletResponse response,
+                           Model model){
+        if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
+            model.addAttribute("imageURL",request.getRequestURL().toString().replace("/captcha/image","/captcha/"+captchaId));
+            model.addAttribute("postURL",request.getRequestURL().toString().replace("/image","/solve"));
+            model.addAttribute("captchaId",captchaId);
+            return "Captcha";
+        } else{
+            response.setStatus(403);
+            return "Wrong";
+        }
     }
 
     @RequestMapping(value = "/captcha/solve", method = POST)
@@ -83,12 +99,20 @@ public class CaptchaController {
                                           @RequestParam(value="answer") String captchaText,
                                           @RequestParam(value="request") String captchaId,
                                           HttpServletResponse response) {
-        boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
         JSONObject json  = new JSONObject();
-        if (result){
+        if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
+            boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
+            if (result){
             json.put("response","----dummy----");
+            } else {
+                response.setStatus(422);
+                json.put("response",null);
+                json.put("message","Incorrect captcha solving");
+            }
         } else {
-            response.setStatus(422);
+            response.setStatus(403);
+            json.put("response",null);
+            json.put("message","Public key "+publicKey+" is absent or does not attached to captcha #"+captchaId);
         }
         return json;
     }

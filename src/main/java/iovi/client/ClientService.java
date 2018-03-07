@@ -4,9 +4,12 @@ package iovi.client;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class ClientService {
    Map<String,ClientData> clients;
+   Map<String,ClientData> clientTokens;
+
    public ClientService(){
        clients= Collections.synchronizedMap(new HashMap<>());
    }
@@ -28,5 +31,13 @@ public class ClientService {
            return true;
        else
            return false;
+   }
+   public static String generateToken(){
+       return "token-"+UUID.randomUUID().toString();
+   }
+   public String getTokenForClient(String publicKey){
+       String token=generateToken();
+       clientTokens.put(token,clients.get(publicKey));
+       return token;
    }
 }

@@ -103,7 +103,8 @@ public class CaptchaController {
         if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
             boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
             if (result){
-            json.put("response","----dummy----");
+                String token=clientService.getTokenForClient(publicKey);
+                json.put("response",token);
             } else {
                 response.setStatus(422);
                 json.put("response",null);

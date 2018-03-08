@@ -79,7 +79,7 @@ public class CaptchaController {
 
     /** Метод для вывода страницы c новой captcha-картинкой*/
     @RequestMapping(value = "/captcha/image", method = GET)
-    public String getImage(@RequestParam("public") String publicKey,
+    public String getCaptcha(@RequestParam("public") String publicKey,
                            @RequestParam("request") String captchaId,
                            HttpServletRequest request,
                            HttpServletResponse response,
@@ -88,6 +88,7 @@ public class CaptchaController {
             model.addAttribute("imageURL",request.getRequestURL().toString().replace("/captcha/image","/captcha/"+captchaId));
             model.addAttribute("postURL",request.getRequestURL().toString().replace("/image","/solve"));
             model.addAttribute("captchaId",captchaId);
+            model.addAttribute("clientId",publicKey);
             return "Captcha";
         } else{
             response.setStatus(403);
@@ -102,9 +103,7 @@ public class CaptchaController {
                                           HttpServletResponse response) {
         JSONObject json  = new JSONObject();
         if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
-            System.err.println("good input");
             boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
-            System.err.println("text is "+result);
             if (result){
                 String token=clientService.getTokenForClient(publicKey);
                 json.put("response",token);

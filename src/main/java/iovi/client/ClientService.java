@@ -20,26 +20,41 @@ public class ClientService {
        return clientData;
    }
    public boolean checkClientExistence(String publicKey){
-       return clients.containsKey(publicKey);
+       ClientData client =clients.get(publicKey);
+       if (client==null)
+           return false;
+       if (isClientExpired(client)){
+           clients.remove(publicKey);
+           return false;
+       }
+       return true;
    }
    public void attachCaptchaToClient(String captchaId, String publicKey){
-        ClientData client=clients.get(publicKey);
-        client.attachCaptcha(captchaId);
+       if (checkClientExistence(publicKey)){
+           ClientData client=clients.get(publicKey);
+           client.attachCaptcha(captchaId);
+       }
    }
    public boolean checkCaptchaAttachedToClient(String captchaId,String publicKey){
-       ClientData client=clients.get(publicKey);
-       if (captchaId.equals(client.getCaptchaId()))
-           return true;
-       else
-           return false;
+       if (checkClientExistence(publicKey)){
+            ClientData client=clients.get(publicKey);
+            if (captchaId.equals(client.getCaptchaId()))
+                return true;
+       }
+       return false;
    }
    public static String generateToken(){
        return "token-"+UUID.randomUUID().toString();
    }
    public String getTokenForClient(String publicKey){
-       String token=generateToken();
-       clientTokens.put(token,clients.get(publicKey));
-       return token;
+       if (checkClientExistence(publicKey)){
+            String token=generateToken();
+            clientTokens.put(token,clients.get(publicKey));
+            return token;
+       } else{
+            return null;
+       }
+
    }
    public String verifyClientToken(String secretKey,String token){
        ClientData client=clientTokens.get(token);

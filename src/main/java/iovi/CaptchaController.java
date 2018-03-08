@@ -28,9 +28,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    static final int TIMEOUT=60000;
-    CaptchaService captchaService=new CaptchaService(TIMEOUT);
-    ClientService clientService=new ClientService();
+    static final int CAPTCHA_TIMEOUT=60000;
+    static final int CLIENT_TIMEOUT=600000;
+    CaptchaService captchaService=new CaptchaService(CAPTCHA_TIMEOUT);
+    ClientService clientService=new ClientService(CLIENT_TIMEOUT);
 
     /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)
@@ -62,11 +63,11 @@ public class CaptchaController {
             String captchaId =captchaService.getNewCaptchaId();
             clientService.attachCaptchaToClient(captchaId,publicKey);
             json.put("request",captchaId);
-            if ("false".equals(System.getProperty("production"))){
+            //if ("false".equals(System.getProperty("production"))){
                 json.put("answer",captchaService.getCaptchaText(captchaId));
-            } else {
-                json.put("answer",null);
-            }
+            //} else {
+            //    json.put("answer",null);
+            //}
         } else{
             response.setStatus(403);
             json.put("message","Public key "+publicKey+" is absent. You should go to /client/register first");
@@ -101,7 +102,9 @@ public class CaptchaController {
                                           HttpServletResponse response) {
         JSONObject json  = new JSONObject();
         if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
+            System.err.println("good input");
             boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
+            System.err.println("text is "+result);
             if (result){
                 String token=clientService.getTokenForClient(publicKey);
                 json.put("response",token);
@@ -120,11 +123,11 @@ public class CaptchaController {
 
     @RequestMapping(value = "/captcha/verify", method = GET)
     public @ResponseBody JSONObject verify(@RequestParam("secret") String secretKey,
-                                          @RequestParam(value="response") String token,
-                                          HttpServletResponse response) {
+                                          @RequestParam(value="response") String token) {
         JSONObject json  = new JSONObject();
-        json.put("success",true);
-        json.put("errorCode","");
+        String errorCode=clientService.verifyClientToken(secretKey,token);
+        json.put("errorCode",errorCode);
+        json.put("success",errorCode==null?true:false);
         return json;
     }
 
@@ -170,7 +173,7 @@ public class CaptchaController {
           return "Correct";
       }
       else {
-          model.addAttribute("timeout",TIMEOUT/1000);
+          model.addAttribute("timeout",CAPTCHA_TIMEOUT/1000);
           response.setStatus(422);
           return "Wrong";
       }

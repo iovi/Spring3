@@ -1,17 +1,18 @@
 package iovi.client;
 
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ClientService {
    Map<String,ClientData> clients;
    Map<String,ClientData> clientTokens;
+   long timeout;
 
-   public ClientService(){
+   public ClientService(long timeout){
+
        clients= Collections.synchronizedMap(new HashMap<>());
+       clientTokens =Collections.synchronizedMap(new HashMap<>());
+       this.timeout=timeout;
    }
    public ClientData registerClient(){
        ClientData clientData=new ClientData();
@@ -39,5 +40,26 @@ public class ClientService {
        String token=generateToken();
        clientTokens.put(token,clients.get(publicKey));
        return token;
+   }
+   public String verifyClientToken(String secretKey,String token){
+       ClientData client=clientTokens.get(token);
+       if (client==null)
+           return "IncorrectToken";
+       if (isClientExpired(client))
+           return "ClientIsExpired";
+       if (!secretKey.equals(client.getSecretKey()))
+           return "IncorrectSecretKey";
+       else{
+           clientTokens.remove(token);
+           return null;
+       }
+   }
+   boolean isClientExpired(ClientData client){
+       if (client.getCreationTime().getTime()+timeout> new Date().getTime())
+           return false;
+       else
+           return true;
+
+
    }
 }

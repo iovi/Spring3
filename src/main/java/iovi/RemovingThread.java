@@ -4,9 +4,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * Created by iovi on 28.01.2018.
- */
+/**Поток, выполняющий удаление устаревших данных */
 public class RemovingThread extends Thread {
     Map<String,CaptchaWithCreationTime> captchas;
     long timeout;

@@ -28,7 +28,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    static final int CAPTCHA_TIMEOUT=60000;
+    static final int CAPTCHA_TIMEOUT=PropertiesHelper.captchaTimeout()*1000;
     static final int CLIENT_TIMEOUT=600000;
     CaptchaService captchaService=new CaptchaService(CAPTCHA_TIMEOUT);
     ClientService clientService=new ClientService(CLIENT_TIMEOUT);
@@ -45,7 +45,10 @@ public class CaptchaController {
         IOUtils.copy(inputStream, response.getOutputStream());
     }
 
-    /** Метод регистрации пользователя*/
+    /**
+     * Метод регистрации нового пользователя
+     * @return JSON-объект  с  двумя UUID-строками: secret – приватный ключ клиента, public – публичный ключ, используемый на сайте.
+     * */
     @RequestMapping(value = "/client/register", method = POST)
     public @ResponseBody JSONObject register() throws IOException {
         ClientData clientData=clientService.registerClient();
@@ -54,32 +57,38 @@ public class CaptchaController {
         json.put("public",clientData.getPublicKey());
         return json;
     }
-    /** Метод инициирующий проверку пользователя*/
-    @RequestMapping(value = "/captcha/new", method = GET)
-    public @ResponseBody JSONObject initiate(@RequestParam("public") String publicKey, HttpServletResponse response) {
-        JSONObject json  = new JSONObject();
 
+    /**
+     * <p>Метод для создания новой CAPTCHA.
+     * @param publicKey публичный ключ ранее зарегистированного в {@link #register()} клиента.
+     * При указании не регистрировавшегося или истекшего клиента возвращает код ответа 403.
+     * @return JSON-объект объект с двумя строками: request – идентификатор CAPTCHA, answer – разгадка к решению теста
+     * */
+    @RequestMapping(value = "/captcha/new", method = GET)
+    public @ResponseBody JSONObject createCaptcha(@RequestParam("public") String publicKey, HttpServletResponse response) {
+        JSONObject json  = new JSONObject();
+        String requestField=null;
+        String answerField=null;
         if (clientService.checkClientExistence(publicKey)){
             String captchaId =captchaService.getNewCaptchaId();
             clientService.attachCaptchaToClient(captchaId,publicKey);
-            json.put("request",captchaId);
-            //if ("false".equals(System.getProperty("production"))){
-                json.put("answer",captchaService.getCaptchaText(captchaId));
-            //} else {
-            //    json.put("answer",null);
-            //}
+            requestField=captchaId;
+            if (!PropertiesHelper.isInProductionMode())
+                answerField=captchaService.getCaptchaText(captchaId);
         } else{
             response.setStatus(403);
-            json.put("message","Public key "+publicKey+" is absent. You should go to /client/register first");
-            json.put("request",null);
-            json.put("answer",null);
         }
+        json.put("request",requestField);
+        json.put("answer",answerField);
         return json;
     }
 
-    /** Метод для вывода страницы c новой captcha-картинкой*/
+    /**
+     * <p>Метод для вывода страницы c captcha-картинкой. Картинка получается дополнительным запросом на
+     * {@link #getCaptchaAsByteArray(String, HttpServletResponse) getCaptchaAsByteArray} </p>
+     * */
     @RequestMapping(value = "/captcha/image", method = GET)
-    public String getCaptcha(@RequestParam("public") String publicKey,
+    public String getCaptchaImage(@RequestParam("public") String publicKey,
                            @RequestParam("request") String captchaId,
                            HttpServletRequest request,
                            HttpServletResponse response,
@@ -96,31 +105,45 @@ public class CaptchaController {
         }
     }
 
+
+    /** Метод для проверки разгадки captcha-картинки
+     * @param publicKey публичный ключ ранее зарегистированного в {@link #register()} клиента.
+     * При указании не регистрировавшегося или истекшего клиента возвращает код ответа 403.
+     * @param captchaId идентификатор captcha-картинки, переданный в поле "request" ответа на
+     * {@link #createCaptcha(String, HttpServletResponse)}
+     *@param captchaText разгадка captcha-картинки, подлежащая проверке.
+     *@return JSON-объект с полем response - токен, используемый для  последующей  верификации.
+     *При неверной разгадке response = null, http-код ответа = 422
+     * */
     @RequestMapping(value = "/captcha/solve", method = POST)
     public @ResponseBody JSONObject solve(@RequestParam("public") String publicKey,
                                           @RequestParam(value="answer") String captchaText,
                                           @RequestParam(value="request") String captchaId,
                                           HttpServletResponse response) {
         JSONObject json  = new JSONObject();
+        String responseField=null;
         if (clientService.checkClientExistence(publicKey) && clientService.checkCaptchaAttachedToClient(captchaId,publicKey)){
             boolean result=captchaService.checkCaptchaText(captchaId,captchaText);
             if (result){
-                String token=clientService.getTokenForClient(publicKey);
-                json.put("response",token);
+                responseField=clientService.getTokenForClient(publicKey);
             } else {
                 response.setStatus(422);
-                json.put("response",null);
-                json.put("message","Incorrect captcha solving");
             }
         } else {
             response.setStatus(403);
-            json.put("response",null);
-            json.put("message","Public key "+publicKey+" is absent or does not attached to captcha #"+captchaId);
         }
+        json.put("response",responseField);
         return json;
     }
 
-    @RequestMapping(value = "/captcha/verify", method = GET)
+    /**
+     * Метод проверки токена клиента
+     * @param secretKey секретный ключ ранее зарегистированного в {@link #register()} клиента.
+     * @param token токен, возвращенный в ответе на {@link #solve(String, String, String, HttpServletResponse)}
+     * @return JSON-объект с полями: success – результат  проверки токена (булевый  тип), errorCode – строка с информацией об ошибке.
+     * Возможные значение errorCode см. в {@link ClientService#verifyClientToken(String, String)} }
+     * */
+     @RequestMapping(value = "/captcha/verify", method = GET)
     public @ResponseBody JSONObject verify(@RequestParam("secret") String secretKey,
                                           @RequestParam(value="response") String token) {
         JSONObject json  = new JSONObject();
@@ -129,53 +152,4 @@ public class CaptchaController {
         json.put("success",errorCode==null?true:false);
         return json;
     }
-
-
-    /**
-     * <p>Метод для вывода страницы c новой captcha-картинкой. Картинка получается дополнительным запросом на
-     * {@link #getCaptchaAsByteArray(String, HttpServletResponse) getCaptchaAsByteArray} </p>
-     * <p>В ответе на запрос присутствуют дополнительные заголовки</p>
-     * <ul>
-     *     <li>captcha-id - идентификатор captcha-картинки</li>
-     *     <li>captcha-text - разгадка для captcha (для упрощения тестирования )</li>
-     * </ul>
-     * */
-    @RequestMapping(value = "/captcha", method = GET)
-    public String getCaptcha(HttpServletRequest request, HttpServletResponse response, Model model) {
-        String captchaId =captchaService.getNewCaptchaId();
-        model.addAttribute("imageURL",request.getRequestURL().toString()+"/"+captchaId);
-        model.addAttribute("postURL",request.getRequestURL().toString()+"/check");
-        model.addAttribute("captchaId",captchaId);
-
-        response.setHeader("captcha-id",captchaId);
-        response.setHeader("captcha-text",captchaService.getCaptchaText(captchaId));
-        return "Captcha";
-    }
-
-
-    /** Метод для проверки разгадки captcha-картинки
-     * @param id идентификатор captcha-картинки, переданный в заголовке ответа на
-     * {@link #getCaptcha(HttpServletRequest, HttpServletResponse,Model) getCaptcha}
-     *@param captchaText разгадка captcha-картинки, подлежащая проверке
-     * */
-    @RequestMapping(value = "/captcha/check", method = POST)
-    public String checkCaptcha(@RequestParam(value="text") String captchaText,
-                               @RequestParam(value="id") String id,
-                               HttpServletResponse response,
-                               Model model) throws IOException {
-
-
-      boolean result=captchaService.checkCaptchaText(id,captchaText);
-      if (result){
-          model.addAttribute("captchaText",captchaText);
-          model.addAttribute("id",id);
-          return "Correct";
-      }
-      else {
-          model.addAttribute("timeout",CAPTCHA_TIMEOUT/1000);
-          response.setStatus(422);
-          return "Wrong";
-      }
-    }
-
 }

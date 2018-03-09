@@ -31,9 +31,6 @@ public class CaptchaService{
             timeout=MIN_TIMEOUT;
         else
             timeout=timeoutInMs;
-
-        RemovingThread remover=new RemovingThread(captchas,timeoutInMs,REMOVE_PERIOD);
-        remover.start();
     }
 
     /**
@@ -80,12 +77,14 @@ public class CaptchaService{
         CaptchaWithCreationTime captchaData= captchas.get(captchaId);
         if (captchaData==null)
             return false;
-        if (captchaData.getCaptcha().getText().equals(captchaText) &&
-                captchaData.getCreationTime().getTime()+timeout> new Date().getTime()){
+        else {
             captchas.remove(captchaId);
-            return true;
-        }
-        else return false;
-    }
+            if (captchaData.getCaptcha().getText().equals(captchaText) &&
+                    captchaData.getCreationTime().getTime() + timeout > new Date().getTime()) {
 
+                return true;
+            } else
+                return false;
+        }
+    }
 }

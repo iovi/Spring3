@@ -4,23 +4,25 @@ package iovi.client;
 import java.util.*;
 
 public class ClientService {
-   Map<String,ClientData> clients;
-   Map<String,ClientData> clientTokens;
-   long timeout;
+   Map<String,Client> clients;
+   Map<String,ClientToken> tokens;
+   long clientTimeout;
+   long tokenTimeout;
 
-   public ClientService(long timeout){
+   public ClientService(long clientTimeout, long tokenTimeout){
 
        clients= Collections.synchronizedMap(new HashMap<>());
-       clientTokens =Collections.synchronizedMap(new HashMap<>());
-       this.timeout=timeout;
+       tokens =Collections.synchronizedMap(new HashMap<>());
+       this.tokenTimeout=tokenTimeout;
+       this.clientTimeout=clientTimeout;
    }
-   public ClientData registerClient(){
-       ClientData clientData=new ClientData();
-       clients.put(clientData.publicKey,clientData);
-       return clientData;
+   public Client registerClient(){
+       Client client =new Client();
+       clients.put(client.publicKey, client);
+       return client;
    }
    public boolean checkClientExistence(String publicKey){
-       ClientData client =clients.get(publicKey);
+       Client client =clients.get(publicKey);
        if (client==null)
            return false;
        if (isClientExpired(client)){
@@ -31,50 +33,57 @@ public class ClientService {
    }
    public void attachCaptchaToClient(String captchaId, String publicKey){
        if (checkClientExistence(publicKey)){
-           ClientData client=clients.get(publicKey);
+           Client client=clients.get(publicKey);
            client.attachCaptcha(captchaId);
        }
    }
    public boolean checkCaptchaAttachedToClient(String captchaId,String publicKey){
        if (checkClientExistence(publicKey)){
-            ClientData client=clients.get(publicKey);
+            Client client=clients.get(publicKey);
             if (captchaId.equals(client.getCaptchaId()))
                 return true;
        }
        return false;
    }
-   public static String generateToken(){
-       return "token-"+UUID.randomUUID().toString();
-   }
+
    public String getTokenForClient(String publicKey){
        if (checkClientExistence(publicKey)){
-            String token=generateToken();
-            clientTokens.put(token,clients.get(publicKey));
-            return token;
+            ClientToken token=new ClientToken(publicKey);
+            tokens.put(token.getTokenString(),token);
+            return token.getTokenString();
        } else{
             return null;
        }
 
    }
-   public String verifyClientToken(String secretKey,String token){
-       ClientData client=clientTokens.get(token);
-       if (client==null)
+   public String verifyClientToken(String secretKey,String tokenString){
+       ClientToken token= tokens.get(tokenString);
+       if (token==null){
            return "IncorrectToken";
-       if (isClientExpired(client))
-           return "ClientIsExpired";
-       if (!secretKey.equals(client.getSecretKey()))
-           return "IncorrectSecretKey";
-       else{
-           clientTokens.remove(token);
-           return null;
+       } else{
+           tokens.remove(tokenString);
+           if (token.getCreationTime().getTime()+tokenTimeout< new Date().getTime())
+               return "TokenIsExpired";
+
+           Client client=clients.get(token.getClientPublicKey());
+           if (isClientExpired(client)){
+               clients.remove(client.getPublicKey());
+               return "ClientIsExpired";
+           }
+           if (!secretKey.equals(client.getSecretKey()))
+               return "IncorrectSecretKey";
+           else{
+               clients.remove(token.getClientPublicKey());
+               return null;
+           }
        }
    }
-   boolean isClientExpired(ClientData client){
-       if (client.getCreationTime().getTime()+timeout> new Date().getTime())
-           return false;
-       else
-           return true;
+    boolean isClientExpired(Client client){
+        if (client.getCreationTime().getTime()+clientTimeout> new Date().getTime())
+            return false;
+        else
+            return true;
 
 
-   }
+    }
 }

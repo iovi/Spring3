@@ -1,7 +1,7 @@
 package iovi;
 
 
-import iovi.client.ClientData;
+import iovi.client.Client;
 import iovi.client.ClientService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -30,8 +30,9 @@ public class CaptchaController {
 
     static final int CAPTCHA_TIMEOUT=PropertiesHelper.captchaTimeout()*1000;
     static final int CLIENT_TIMEOUT=600000;
+    static final int TOKEN_TIMEOUT=60000;
     CaptchaService captchaService=new CaptchaService(CAPTCHA_TIMEOUT);
-    ClientService clientService=new ClientService(CLIENT_TIMEOUT);
+    ClientService clientService=new ClientService(CLIENT_TIMEOUT,TOKEN_TIMEOUT);
 
     /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)
@@ -51,10 +52,10 @@ public class CaptchaController {
      * */
     @RequestMapping(value = "/client/register", method = POST)
     public @ResponseBody JSONObject register() throws IOException {
-        ClientData clientData=clientService.registerClient();
+        Client client =clientService.registerClient();
         JSONObject json  = new JSONObject();
-        json.put("secret",clientData.getSecretKey());
-        json.put("public",clientData.getPublicKey());
+        json.put("secret", client.getSecretKey());
+        json.put("public", client.getPublicKey());
         return json;
     }
 

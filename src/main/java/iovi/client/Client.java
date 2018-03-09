@@ -4,13 +4,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
-public class ClientData extends Object{
+public class Client extends Object{
     String secretKey;
     String publicKey;
     String captchaId;
     Date creationTime;
 
-    public ClientData(){
+    public Client(){
         secretKey= UUID.randomUUID().toString();
         publicKey= UUID.randomUUID().toString();
         creationTime= Calendar.getInstance().getTime();

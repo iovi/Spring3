@@ -34,12 +34,16 @@ public class CaptchaServiceTest {
     public void checkCaptchaText_ValidText(){
         String captchaId=captchaService.getNewCaptchaId();
         String captchaText=captchaService.getCaptchaText(captchaId);
+        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
+    }
+    @Test
+    public void checkCaptchaText_InvalidText(){
+        String captchaId=captchaService.getNewCaptchaId();
+        String captchaText=captchaService.getCaptchaText(captchaId);
         StringBuilder incorrectText = new StringBuilder(captchaText);
         incorrectText.setCharAt(0, (char)(incorrectText.charAt(0)+1));
         assertFalse(captchaService.checkCaptchaText(captchaId,incorrectText.toString()));
         assertFalse(captchaService.checkCaptchaText(captchaId, null));
-
-        assertTrue(captchaService.checkCaptchaText(captchaId,captchaText));
     }
 
     /**

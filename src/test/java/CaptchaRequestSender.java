@@ -1,6 +1,11 @@
-import java.io.DataOutputStream;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 /**
  * <p>Отправщик запросов на сервис captcha</p>
@@ -14,21 +19,43 @@ public class CaptchaRequestSender {
     /**id captcha, получаемый из заголовка captcha-id при запросе {@link #getCaptchaAndStoreData(String)}*/
     public String captchaId;
 
+    public String secretKey;
+    public String publicKey;
+
+    public String token;
+
+    public boolean success;
+    public String errorCode;
+
+
+    static JSONObject getResponseJSON(HttpURLConnection connection) throws IOException,ParseException{
+        BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        while ((inputLine = bufferedReader.readLine()) != null) {
+            response.append(inputLine);
+        }
+        bufferedReader.close();
+        JSONParser parser = new JSONParser();
+        return(JSONObject) parser.parse(response.toString());
+    }
 
     /**
-     * Выполнет HTTP GET-запрос на указанный адрес, сохраняет полученные параметры из заголовков ответа captcha-id, captcha-text
-     * @param url адрес выполняемого GET-запроса
-     * @return код ответа GET-запроса на указанный адрес, 0 в случае возникших исключений
+     * Выполнет HTTP запрос на указанный адрес, сохраняет поля public и secret полученного JSON-объекта
+     * @param url адрес выполняемого запроса
+     * @param method метод запроса
+     * @return код ответа запроса на указанный адрес, 0 в случае возникших исключений
      */
-    public int getCaptchaAndStoreData(String url) {
-
+    public int registerClient(String url, String method){
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
+            connection.setRequestMethod(method);
             int status = connection.getResponseCode();
             if (status==HttpURLConnection.HTTP_OK) {
-                captchaId= connection.getHeaderField("captcha-id");
-                captchaText= connection.getHeaderField("captcha-text");
+                JSONObject json= getResponseJSON(connection);
+                secretKey=(String)json.get("secret");
+                publicKey=(String)json.get("public");
             }
             connection.disconnect();
             return status;
@@ -37,26 +64,71 @@ public class CaptchaRequestSender {
         }
     }
 
-    /**
-     * Выполнет HTTP POST-запрос на указанный адрес, с параметрами id={@link #captchaId}&text={@link #captchaText}
-     * @param url адрес выполняемого POST-запроса
-     * @return код ответа POST-запроса на указанный адрес, 0 в случае возникших исключений
-     */
-    public int checkCaptchaByStoredData(String url) {
+    public int newCaptcha(String url, String method){
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-            out.writeBytes("text=" + captchaText + "&id=" + captchaId);
+            HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey).openConnection();
+            connection.setRequestMethod(method);
             int status = connection.getResponseCode();
-            out.flush();
-            out.close();
+            if (status==HttpURLConnection.HTTP_OK) {
+                JSONObject json= getResponseJSON(connection);
+                captchaId=(String)json.get("request");
+                captchaText=(String)json.get("answer");
+            }
             connection.disconnect();
             return status;
-        } catch (Exception e) {
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+            return 0;
+        }
+    }
+    public int getImage(String url, String method){
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey+
+                    "&request="+captchaId).openConnection();
+            connection.setRequestMethod(method);
+            int status = connection.getResponseCode();
+            connection.disconnect();
+            return status;
+        }catch (Exception e){
+            System.err.println(e.getMessage());
             return 0;
         }
     }
 
+
+    public int solveCaptcha(String url, String method){
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey+"&request="+captchaId+
+                "&answer="+captchaText).openConnection();
+            connection.setRequestMethod(method);
+            int status = connection.getResponseCode();
+            if (status==HttpURLConnection.HTTP_OK) {
+                JSONObject json= getResponseJSON(connection);
+                token=(String)json.get("response");
+            }
+            connection.disconnect();
+            return status;
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+            return 0;
+        }
+    }
+    public int verifyClient(String url, String method){
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url+"?secret="+secretKey+
+                    "&response="+token).openConnection();
+            connection.setRequestMethod(method);
+            int status = connection.getResponseCode();
+            if (status==HttpURLConnection.HTTP_OK) {
+                JSONObject json= getResponseJSON(connection);
+                errorCode=(String)json.get("errorCode");
+                success=(boolean)json.get("success");
+            }
+            connection.disconnect();
+            return status;
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+            return 0;
+        }
+    }
 }

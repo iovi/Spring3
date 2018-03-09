@@ -25,7 +25,7 @@ public class ClientTest {
         Client client =new Client();
         long time2=new Date().getTime();
         assertFalse(client.getCreationTime()==null);
-        assertTrue(client.getCreationTime().getTime()>time1 && client.getCreationTime().getTime()<time2);
+        assertTrue(client.getCreationTime().getTime()>=time1 && client.getCreationTime().getTime()<=time2);
     }
 
 }

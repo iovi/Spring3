@@ -6,14 +6,18 @@ import static org.junit.Assert.*;
 /**Функциональный тест приложения*/
 public class FunctionalTest {
 
-    static final String GET_URL="http://localhost:8080/captcha";
-    static final String CHECK_URL="http://localhost:8080/captcha/check";
+    static final String REGISTER_URL="http://localhost:8080/client/register";
+    static final String NEW_URL="http://localhost:8080/captcha/new";
+    static final String IMAGE_URL="http://localhost:8080/captcha/image";
+    static final String SOLVE_URL="http://localhost:8080/captcha/solve";
+    static final String VERIFY_URL="http://localhost:8080/captcha/verify";
 
     /**Запуск приложения*/
     @BeforeClass
     public static void startMain(){
         String[] args = new String[]{};
         Main.main(args);
+        System.setProperty("production","false");
     }
 
     /**
@@ -22,21 +26,29 @@ public class FunctionalTest {
     @Test
     public void oneSenderWorks(){
         CaptchaRequestSender sender=new CaptchaRequestSender();
-        assertEquals(200,sender.getCaptchaAndStoreData(GET_URL));
-        assertEquals(200,sender.checkCaptchaByStoredData(CHECK_URL));
+        assertEquals(200,sender.registerClient(REGISTER_URL,"POST"));
+        assertEquals(200,sender.newCaptcha(NEW_URL,"GET"));
+        assertEquals(200,sender.getImage(IMAGE_URL,"GET"));
+        assertEquals(200,sender.solveCaptcha(SOLVE_URL,"POST"));
+        assertEquals(200,sender.verifyClient(VERIFY_URL,"GET"));
+        assertEquals(true,sender.success);
     }
 
     /**Проверка одновременной работы приложения с несколькими отправщиками запросов*/
     @Test
     public void manySendersWork(){
         Runnable senderActivity=()->{
-                CaptchaRequestSender sender = new CaptchaRequestSender();
-                assertEquals(200, sender.getCaptchaAndStoreData(GET_URL));
-                assertEquals(200, sender.checkCaptchaByStoredData(CHECK_URL));
-            };
+            CaptchaRequestSender sender=new CaptchaRequestSender();
+            assertEquals(200,sender.registerClient(REGISTER_URL,"POST"));
+            assertEquals(200,sender.newCaptcha(NEW_URL,"GET"));
+            assertEquals(200,sender.getImage(IMAGE_URL,"GET"));
+            assertEquals(200,sender.solveCaptcha(SOLVE_URL,"POST"));
+            assertEquals(200,sender.verifyClient(VERIFY_URL,"GET"));
+            assertEquals(true,sender.success);
+        };
 
-        Thread threads[]=new Thread[100];
-        for (int i=0;i<100;i++){
+        Thread threads[]=new Thread[1000];
+        for (int i=0;i<1000;i++){
             threads[i]=new Thread(senderActivity);
             threads[i].start();
         }
@@ -53,7 +65,7 @@ public class FunctionalTest {
      * <p>Проверка контроля приложением текста captcha</p>
      * <p>При отправке на {@link #CHECK_URL} текста из предварительного запроса на {@link #GET_URL} - возвращается статус 200.
      * При отправке другого текста - ошибка 422</p>
-     * */
+     * *
     @Test
     public void checksValidText(){
         CaptchaRequestSender sender = new CaptchaRequestSender();
@@ -74,7 +86,7 @@ public class FunctionalTest {
     /**
      * <p>Проверка контроля приложением таймаута</p>
      * <p>Запрос на {@link #CHECK_URL} с корректыми данными выдает ошибку 422 после таймаута</p>
-     * */
+     * *
     @Test
     public void checksTimeout(){
         CaptchaRequestSender sender = new CaptchaRequestSender();
@@ -90,13 +102,12 @@ public class FunctionalTest {
     /**
      * <p>Проверка контроля приложением количества вызовов</p>
      * <p>Первый запрос {@link #CHECK_URL} возвращает одобренный статус 200, второй - 422</p>
-     * */
+     * *
     @Test
     public void checksSecondCall(){
         CaptchaRequestSender sender = new CaptchaRequestSender();
         assertEquals(200, sender.getCaptchaAndStoreData(GET_URL));
         assertEquals(200, sender.checkCaptchaByStoredData(CHECK_URL));
         assertEquals(422, sender.checkCaptchaByStoredData(CHECK_URL));
-    }
-
+    }*/
 }

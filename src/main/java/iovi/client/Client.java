@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
+/**Класс клиента-владельца публичного и секретного ключа, привязанной captcha*/
 public class Client extends Object{
     String secretKey;
     String publicKey;
@@ -18,6 +19,7 @@ public class Client extends Object{
     public String getPublicKey(){return publicKey;}
     public String getSecretKey(){return secretKey;}
     public Date getCreationTime(){return creationTime;}
+    /** Привязывает заданный идентификатор captcha к клиенту*/
     public void attachCaptcha(String captchaId){
         this.captchaId=captchaId;
     }

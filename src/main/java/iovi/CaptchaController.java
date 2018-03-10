@@ -28,7 +28,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    static final int CLIENT_TIMEOUT=600000;
+    static final long CLIENT_TIMEOUT=600000;
     CaptchaService captchaService=new CaptchaService();
     ClientService clientService=new ClientService(CLIENT_TIMEOUT);
 
@@ -144,11 +144,14 @@ public class CaptchaController {
      * */
      @RequestMapping(value = "/captcha/verify", method = GET)
     public @ResponseBody JSONObject verify(@RequestParam("secret") String secretKey,
-                                          @RequestParam(value="response") String token) {
+                                           @RequestParam(value="response") String token,
+                                           HttpServletResponse response) {
         JSONObject json  = new JSONObject();
         String errorCode=clientService.verifyClientToken(secretKey,token);
         json.put("errorCode",errorCode);
         json.put("success",errorCode==null?true:false);
+        if (errorCode!=null)
+            response.setStatus(422);
         return json;
     }
 }

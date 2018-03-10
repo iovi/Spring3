@@ -22,55 +22,80 @@ public class FunctionalTest {
         System.setProperty("production","false");
     }
 
-    /**Проверка работы регистрации клиента */
+    /**Проверка запроса регистрации клиента */
     @Test
     public void registerTest(){
         internalSender=new CaptchaRequestSender();
-        assertEquals(200,internalSender.registerClient("http://localhost:8080/client/register","POST"));
+        assertEquals(200,internalSender.registerClient(REGISTER_URL,"POST"));
         assertTrue(internalSender.publicKey!=null);
         assertTrue(internalSender.secretKey!=null);
     }
 
-    /**Проверка работы создвания новой CAPTCHA*/
+    /**Проверка запроса создания новой CAPTCHA с корректными даными*/
     @Test
     public void createCaptchaTest(){
         registerTest();
-        assertEquals(200,internalSender.newCaptcha("http://localhost:8080/captcha/new","GET"));
+        assertEquals(200,internalSender.newCaptcha(NEW_URL,"GET"));
         assertTrue(internalSender.captchaId!=null);
         assertTrue(internalSender.captchaText!=null);
     }
 
-    /**Проверка заполнения поля ответа "answer" (в запросе создания новой CAPTCHA) в зависимости от параметра production. */
+    /**Проверка заполнения поля ответа "answer" (на запрос создания новой CAPTCHA) в зависимости от параметра production. */
     @Test
     public void createCaptcha_returnsAnswer(){
         registerTest();
         System.setProperty("production","true");
-        internalSender.newCaptcha("http://localhost:8080/captcha/new","GET");
+        internalSender.newCaptcha(NEW_URL,"GET");
         assertTrue(internalSender.captchaId!=null);
         assertTrue(internalSender.captchaText==null);
         System.setProperty("production","false");
-        internalSender.newCaptcha("http://localhost:8080/captcha/new","GET");
+        internalSender.newCaptcha(NEW_URL,"GET");
         assertTrue(internalSender.captchaText!=null);
     }
 
+    /**Проверка запроса показа картинки CAPTCHA с корректными даными*/
     @Test
     public void getCaptchaImageTest(){
         createCaptchaTest();
-        assertEquals(200,internalSender.getImage("http://localhost:8080/captcha/image","GET"));
+        assertEquals(200,internalSender.getImage(IMAGE_URL,"GET"));
     }
 
+    /**Проверка запроса на разгадку CAPTCHA с корректными даными*/
     @Test
     public void solveTest(){
         createCaptchaTest();
-        assertEquals(200,internalSender.solveCaptcha("http://localhost:8080/captcha/solve","POST"));
+        assertEquals(200,internalSender.solveCaptcha(SOLVE_URL,"POST"));
         assertTrue(internalSender.token!=null);
     }
 
+    /**Проверка запроса с неправильной разгадкой CAPTCHA - должен вернуть код 422*/
+    @Test
+    public void solve_IncorrectText(){
+        createCaptchaTest();
+        StringBuilder incorrectText = new StringBuilder(internalSender.captchaText);
+        incorrectText.setCharAt(0, (char)(incorrectText.charAt(0)+1));
+        internalSender.captchaText=incorrectText.toString();
+        assertEquals(422,internalSender.solveCaptcha(SOLVE_URL,"POST"));
+    }
+
+
+    /**Проверка запроса верификации клиента с корректными даными*/
     @Test
     public void verifyTest(){
         solveTest();
-        assertEquals(200,internalSender.verifyClient("http://localhost:8080/captcha/verify","GET"));
+        assertEquals(200,internalSender.verifyClient(VERIFY_URL,"GET"));
         assertEquals(true,internalSender.success);
+    }
+
+    /**Проверка запроса с неправильным токеном - должен вернуть код 422*/
+    @Test
+    public void verify_IncorrectToken(){
+        solveTest();
+        StringBuilder incorrectToken = new StringBuilder(internalSender.token);
+        incorrectToken.setCharAt(10, (char)(incorrectToken.charAt(10)+1));
+        internalSender.token=incorrectToken.toString();
+        assertEquals(422,internalSender.verifyClient(VERIFY_URL,"GET"));
+        assertEquals(false,internalSender.success);
     }
 
     /**Проверка возвращения ответа 403 при запросах от незарегистрированного клиента */
@@ -80,9 +105,9 @@ public class FunctionalTest {
         StringBuilder incorrectKey = new StringBuilder(internalSender.publicKey);
         incorrectKey.setCharAt(0, (char)(internalSender.publicKey.charAt(0)+1));
         internalSender.publicKey=incorrectKey.toString();
-        assertEquals(403,internalSender.newCaptcha("http://localhost:8080/captcha/new","GET"));
-        assertEquals(403,internalSender.getImage("http://localhost:8080/captcha/image","GET"));
-        assertEquals(403,internalSender.solveCaptcha("http://localhost:8080/captcha/solve","POST"));
+        assertEquals(403,internalSender.newCaptcha(NEW_URL,"GET"));
+        assertEquals(403,internalSender.getImage(IMAGE_URL,"GET"));
+        assertEquals(403,internalSender.solveCaptcha(SOLVE_URL,"POST"));
     }
 
     /**Проверка возврата ответа 422 при истечении таймаута Captcha, равного значению параметра ttl*/
@@ -96,7 +121,7 @@ public class FunctionalTest {
         }catch (InterruptedException e){
             fail();
         }
-        assertEquals(422,internalSender.solveCaptcha("http://localhost:8080/captcha/solve","POST"));
+        assertEquals(422,internalSender.solveCaptcha(SOLVE_URL,"POST"));
     }
 
     /**Проверка одновременной работы приложения с несколькими отправщиками запросов*/
@@ -112,8 +137,8 @@ public class FunctionalTest {
             assertEquals(true,sender.success);
         };
 
-        Thread threads[]=new Thread[1000];
-        for (int i=0;i<1000;i++){
+        Thread threads[]=new Thread[500];
+        for (int i=0;i<500;i++){
             threads[i]=new Thread(senderActivity);
             threads[i].start();
         }
@@ -126,53 +151,4 @@ public class FunctionalTest {
         }
     }
 
-    /**
-     * <p>Проверка контроля приложением текста captcha</p>
-     * <p>При отправке на {@link #CHECK_URL} текста из предварительного запроса на {@link #GET_URL} - возвращается статус 200.
-     * При отправке другого текста - ошибка 422</p>
-     * *
-    @Test
-    public void checksValidText(){
-        CaptchaRequestSender sender = new CaptchaRequestSender();
-        assertEquals(200, sender.getCaptchaAndStoreData(GET_URL));
-
-        String correctText=sender.captchaText;
-        StringBuilder incorrectTextBuilder = new StringBuilder(correctText);
-        incorrectTextBuilder.setCharAt(0, (char)(incorrectTextBuilder.charAt(0)+1));
-        String incorrectText=incorrectTextBuilder.toString();
-
-        sender.captchaText=incorrectText;
-        assertEquals(422, sender.checkCaptchaByStoredData(CHECK_URL));
-
-        sender.captchaText=correctText;
-        assertEquals(200, sender.checkCaptchaByStoredData(CHECK_URL));
-    }
-
-    /**
-     * <p>Проверка контроля приложением таймаута</p>
-     * <p>Запрос на {@link #CHECK_URL} с корректыми данными выдает ошибку 422 после таймаута</p>
-     * *
-    @Test
-    public void checksTimeout(){
-        CaptchaRequestSender sender = new CaptchaRequestSender();
-        assertEquals(200, sender.getCaptchaAndStoreData(GET_URL));
-        try{
-            Thread.sleep(60001);
-        }catch (InterruptedException e){
-            fail();
-        }
-        assertEquals(422, sender.checkCaptchaByStoredData(CHECK_URL));
-    }
-
-    /**
-     * <p>Проверка контроля приложением количества вызовов</p>
-     * <p>Первый запрос {@link #CHECK_URL} возвращает одобренный статус 200, второй - 422</p>
-     * *
-    @Test
-    public void checksSecondCall(){
-        CaptchaRequestSender sender = new CaptchaRequestSender();
-        assertEquals(200, sender.getCaptchaAndStoreData(GET_URL));
-        assertEquals(200, sender.checkCaptchaByStoredData(CHECK_URL));
-        assertEquals(422, sender.checkCaptchaByStoredData(CHECK_URL));
-    }*/
 }

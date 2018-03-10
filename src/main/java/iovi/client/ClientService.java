@@ -12,7 +12,7 @@ public class ClientService {
 
    public ClientService(long clientTimeout){
 
-       clients=new HashMap<>();
+       clients=Collections.synchronizedMap(new HashMap<>());
        tokens=Collections.synchronizedMap(new HashMap<>());
        this.clientTimeout=clientTimeout;
    }
@@ -27,6 +27,7 @@ public class ClientService {
            return false;
        if (isClientExpired(client)){
            clients.remove(publicKey);
+
            return false;
        }
        return true;
@@ -58,20 +59,20 @@ public class ClientService {
    }
    public String verifyClientToken(String secretKey,String tokenString){
        ClientToken token= tokens.get(secretKey);
+       String errorCode=null;
        if (token==null){
-           return "NoTokenForSuchKey";
+           errorCode="NoTokenForSuchKey";
        } else{
-           tokens.remove(secretKey);
            if (!token.getTokenString().equals(tokenString))
-               return "IncorrectToken";
+               errorCode="IncorrectToken";
            Client client=clients.get(token.getClientPublicKey());
            if (isClientExpired(client)){
                clients.remove(client.getPublicKey());
-               return "ClientIsExpired";
-           } else {
-               return null;
+               errorCode="ClientIsExpired";
            }
+           tokens.remove(secretKey);
        }
+       return errorCode;
    }
     boolean isClientExpired(Client client){
         if (client.getCreationTime().getTime()+clientTimeout> new Date().getTime())

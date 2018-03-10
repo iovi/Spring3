@@ -1,33 +1,45 @@
+import iovi.CaptchaController;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.ui.Model;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 
 /**
  * <p>Отправщик запросов на сервис captcha</p>
- * <p>Рекомендуемый порядок работы - создать новый объект класса,
- * выполнить {@link #getCaptchaAndStoreData(String)} для получания данных о новой captcha,
- * затем проверить пришедшие результаты с помощью {@link #checkCaptchaByStoredData(String)}</p>
+ * <p>Рекомендуемый порядок работы - создать новый объект класса, выполнить
+ * <ul>
+ *     <li>{@link #registerClient(String, String)}</li>
+ *     <li>{@link #newCaptcha(String, String)}</li>
+ *     <li>{@link #getImage(String, String)}</li>
+ *     <li>{@link #solveCaptcha(String, String)}</li>
+ *     <li>{@link #verifyClient(String, String)}</li>
+ * </ul>
+ * необходимые промежуточные результаты будут сохранены в поля класса
  */
 public class CaptchaRequestSender {
-    /**Текст captcha, получаемый из заголовка captcha-text при запросе {@link #getCaptchaAndStoreData(String)}*/
+    /**Текст captcha, получаемый из поля "answer" при запросе {@link #newCaptcha(String, String)}*/
     public String captchaText;
-    /**id captcha, получаемый из заголовка captcha-id при запросе {@link #getCaptchaAndStoreData(String)}*/
+    /**id captcha, получаемый из поля "request" при запросе {@link #newCaptcha(String, String)}*/
     public String captchaId;
-
+    /**секретный ключ, получаемый из поля "secret" при запросе {@link #registerClient(String, String)}*/
     public String secretKey;
+    /**публичный ключ, получаемый из поля "public" при запросе {@link #registerClient(String, String)}*/
     public String publicKey;
-
+    /**токен, получаемый из поля "response" при запросе {@link #solveCaptcha(String, String)}*/
     public String token;
-
+    /**успешность запроса {@link #verifyClient(String, String)} из поля "success" */
     public boolean success;
+    /**код ошибки, получаемый из поля "errorCode" при запросе {@link #verifyClient(String, String)}*/
     public String errorCode;
 
 
+    /**Метод для получения JSON-объекта из соединения HttpURLConnection*/
     static JSONObject getResponseJSON(HttpURLConnection connection) throws IOException,ParseException{
         BufferedReader bufferedReader = new BufferedReader(
                 new InputStreamReader(connection.getInputStream()));
@@ -42,10 +54,8 @@ public class CaptchaRequestSender {
     }
 
     /**
-     * Выполнет HTTP запрос на указанный адрес, сохраняет поля public и secret полученного JSON-объекта
-     * @param url адрес выполняемого запроса
-     * @param method метод запроса
-     * @return код ответа запроса на указанный адрес, 0 в случае возникших исключений
+     * Выполнет HTTP-запрос на указанный адрес, с указанным методом,
+     * ожидает выполнения логики {@link CaptchaController#register()} по этому адресу
      */
     public int registerClient(String url, String method){
         try {
@@ -65,6 +75,11 @@ public class CaptchaRequestSender {
         }
     }
 
+    /**
+     * Выполнет HTTP-запрос на указанный адрес, с указанным методом,
+     * ожидает выполнения логики {@link CaptchaController#createCaptcha(String, HttpServletResponse)} по этому адресу
+     */
+
     public int newCaptcha(String url, String method){
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey).openConnection();
@@ -82,6 +97,12 @@ public class CaptchaRequestSender {
             return 0;
         }
     }
+
+    /**
+     * Выполнет HTTP-запрос на указанный адрес, с указанным методом,
+     * ожидает выполнения логики
+     * {@link CaptchaController#getCaptchaImage(String, String, HttpServletRequest, HttpServletResponse, Model)} по этому адресу
+     */
     public int getImage(String url, String method){
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey+
@@ -96,7 +117,10 @@ public class CaptchaRequestSender {
         }
     }
 
-
+    /**
+     * Выполнет HTTP-запрос на указанный адрес, с указанным методом,
+     * ожидает выполнения логики {@link CaptchaController#solve(String, String, String, HttpServletResponse)} по этому адресу
+     */
     public int solveCaptcha(String url, String method){
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url+"?public="+publicKey+"&request="+captchaId+
@@ -114,6 +138,11 @@ public class CaptchaRequestSender {
             return 0;
         }
     }
+
+    /**
+     * Выполнет HTTP-запрос на указанный адрес, с указанным методом,
+     * ожидает выполнения логики {@link CaptchaController#verify(String, String, HttpServletResponse)} по этому адресу
+     */
     public int verifyClient(String url, String method){
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url+"?secret="+secretKey+

@@ -1,9 +1,7 @@
 import iovi.client.Client;
 import iovi.client.ClientService;
-import iovi.client.ClientToken;
 import org.junit.Test;
 
-import javax.validation.constraints.AssertTrue;
 
 import java.util.Date;
 
@@ -95,6 +93,10 @@ public class ClientServiceTest {
         incorrectToken.setCharAt(0, (char)(incorrectToken.charAt(0)+1));
         assertEquals("IncorrectToken",clientService.verifyClientToken(client.getSecretKey(),incorrectToken.toString()));
     }
+    /**
+     * <p>Тест метода {@link ClientService#verifyClientToken(String, String)} на правильный код ответа
+     * при истечении таймаута клиента</p>
+     * */
     @Test
     public void verifyClientToken_Timeout(){
         ClientService clientService =new ClientService(TIMEOUT);

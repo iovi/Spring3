@@ -1,8 +1,10 @@
 package iovi;
 
 
+import iovi.captcha.CaptchaService;
 import iovi.client.Client;
 import iovi.client.ClientService;
+import iovi.helper.PropertiesHelper;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.http.MediaType;

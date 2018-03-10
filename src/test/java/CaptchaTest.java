@@ -1,4 +1,4 @@
-import iovi.Captcha;
+import iovi.captcha.Captcha;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package iovi;
+package iovi.helper;
 
 /** Помощник при работе с параметрами приложения*/
 public class PropertiesHelper {
@@ -7,7 +7,7 @@ public class PropertiesHelper {
      * <p>Тестовый режим используется при передаче параметра production="false" в виртуальную машину.
      * В других случаях - продуктивный режим</p>
      * */
-    static boolean isInProductionMode(){
+    public static boolean isInProductionMode(){
             if("false".equals(System.getProperty("production")))
                 return false;
             else
@@ -18,7 +18,7 @@ public class PropertiesHelper {
      * <p>Значение берется из параметра ttl виртуальной машины. Если получить значение из парамтера не удалось,
      * устанавливается значение по умолчанию - 60 с </p>
      * */
-    static Integer captchaTimeout(){
+    public static Integer captchaTimeout(){
         Integer timeout=0;
         try{
             timeout =Integer.parseInt(System.getProperty("ttl"));

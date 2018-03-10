@@ -1,5 +1,4 @@
-import iovi.Captcha;
-import iovi.CaptchaService;
+import iovi.captcha.CaptchaService;
 import org.junit.Before;
 import org.junit.Test;
 

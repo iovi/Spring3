@@ -1,4 +1,4 @@
-package iovi;
+package iovi.captcha;
 
 import java.util.Calendar;
 import java.util.Date;

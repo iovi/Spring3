@@ -1,4 +1,6 @@
-package iovi;
+package iovi.captcha;
+
+import iovi.helper.ImageHelper;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -38,7 +40,7 @@ public class Captcha {
         if (!isShown){
             isShown=true;
             Font font = new Font("Arial", Font.PLAIN, 48);
-            BufferedImage textImage=ImageHelper.createImageFromString(text,font);
+            BufferedImage textImage= ImageHelper.createImageFromString(text,font);
             return ImageHelper.createDistortedImage(textImage);
         } else
             return new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);

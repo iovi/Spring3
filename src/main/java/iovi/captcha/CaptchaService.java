@@ -1,10 +1,10 @@
-package iovi;
+package iovi.captcha;
 
+
+import iovi.helper.PropertiesHelper;
 
 import java.awt.image.BufferedImage;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.synchronizedMap;
 
@@ -13,7 +13,7 @@ public class CaptchaService{
 
     /**функция нахождения таймаута ожидания проверки captcha в мс*/
     private long getTimeout(){
-        long timeout=PropertiesHelper.captchaTimeout()*1000;
+        long timeout= PropertiesHelper.captchaTimeout()*1000;
         if (timeout==0)
             timeout=MIN_TIMEOUT;
         return timeout;

@@ -11,26 +11,20 @@ import static java.util.Collections.synchronizedMap;
 /**Сервис для работы с captcha */
 public class CaptchaService{
 
+    /**функция нахождения таймаута ожидания проверки captcha в мс*/
+    private long getTimeout(){
+        long timeout=PropertiesHelper.captchaTimeout()*1000;
+        if (timeout==0)
+            timeout=MIN_TIMEOUT;
+        return timeout;
+    }
 
-
-    /**таймаут ожидания проверки captcha в мс*/
-    long timeout;
-
-    /**минимально допустимое значние таймаута {@link #timeout}*/
-    final static long MIN_TIMEOUT=1000;
-    final static long REMOVE_PERIOD=60000;
+    /**минимально допустимое значние таймаута в мс*/
+    final static long MIN_TIMEOUT=60000;
     Map<String,CaptchaWithCreationTime> captchas;
 
-    /**
-     * @param timeoutInMs значение в мс, присваиваемое {@link #timeout}.
-     * Значение игнорируется, если оно меньше {@link #MIN_TIMEOUT}, в качестве таймаута устанавливается {@link #MIN_TIMEOUT}
-     */
-    public CaptchaService(long timeoutInMs){
+    public CaptchaService(){
         captchas = synchronizedMap(new HashMap());
-        if (timeoutInMs<MIN_TIMEOUT)
-            timeout=MIN_TIMEOUT;
-        else
-            timeout=timeoutInMs;
     }
 
     /**
@@ -67,7 +61,7 @@ public class CaptchaService{
      *     <li>Введенный текст должен совпадать с текстом объекта captcha (с указанным id)</li>
      *     <li>Для одной captcha можно пройти успешную проверку только 1 раз (последующие попытки
      *     проверки возвращают false)</li>
-     *     <li>Выполнить успешную проверку можно только в течение {@link #timeout} с момента создания captcha</li>
+     *     <li>Выполнить успешную проверку можно только в течение таймаута с момента создания captcha</li>
      * </ul>
      * @param captchaId идентификатор ранее созданной captcha
      * @param captchaText текст captcha, нуждающийся в проверке
@@ -78,13 +72,14 @@ public class CaptchaService{
         if (captchaData==null)
             return false;
         else {
-            captchas.remove(captchaId);
             if (captchaData.getCaptcha().getText().equals(captchaText) &&
-                    captchaData.getCreationTime().getTime() + timeout > new Date().getTime()) {
-
+                    captchaData.getCreationTime().getTime() + getTimeout() > new Date().getTime()) {
+                captchas.remove(captchaId);
                 return true;
-            } else
+            } else{
+                captchas.remove(captchaId);
                 return false;
+            }
         }
     }
 }

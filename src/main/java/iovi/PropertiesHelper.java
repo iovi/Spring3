@@ -19,7 +19,7 @@ public class PropertiesHelper {
      * устанавливается значение по умолчанию - 60 с </p>
      * */
     static Integer captchaTimeout(){
-        Integer timeout=60;
+        Integer timeout=0;
         try{
             timeout =Integer.parseInt(System.getProperty("ttl"));
         }catch(NumberFormatException e){}

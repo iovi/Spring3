@@ -60,6 +60,7 @@ public class CaptchaRequestSender {
             connection.disconnect();
             return status;
         }catch (Exception e){
+            System.err.println(e.getMessage());
             return 0;
         }
     }

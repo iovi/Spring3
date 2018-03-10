@@ -8,11 +8,10 @@ import static org.junit.Assert.*;
 /**Тест класса CaptchaService */
 public class CaptchaServiceTest {
     CaptchaService captchaService;
-    long timeout=4000;
 
     @Before
     public void init(){
-        captchaService=new CaptchaService(timeout);
+        captchaService=new CaptchaService();
     }
 
     /**Тест создания ненулевой Captcha*/
@@ -53,7 +52,9 @@ public class CaptchaServiceTest {
     @Test
     public void checkCaptchaText_PassTimeout() throws InterruptedException{
         String captchaId=captchaService.getNewCaptchaId();
-        Thread.sleep(timeout+10);
+        Integer timeout=5;
+        System.setProperty("ttl",timeout.toString());
+        Thread.sleep(timeout*1000+10);
         assertFalse(captchaService.checkCaptchaText(captchaId,captchaService.getCaptchaText(captchaId)));
     }
 

@@ -19,14 +19,4 @@ public class ClientTokenTest {
         assertTrue(token.getClientPublicKey()==publicKey);
         assertFalse(token.getTokenString()==null);
     }
-
-    /**Тест корректности времени создания ClientToken*/
-    @Test
-    public void correctClientTokenCreationTime(){
-        long time1=new Date().getTime();
-        ClientToken token =new ClientToken("12315646163");
-        long time2=new Date().getTime();
-        assertFalse(token.getCreationTime()==null);
-        assertTrue(token.getCreationTime().getTime()>=time1 && token.getCreationTime().getTime()<=time2);
-    }
 }

@@ -28,11 +28,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    static final int CAPTCHA_TIMEOUT=PropertiesHelper.captchaTimeout()*1000;
     static final int CLIENT_TIMEOUT=600000;
-    static final int TOKEN_TIMEOUT=60000;
-    CaptchaService captchaService=new CaptchaService(CAPTCHA_TIMEOUT);
-    ClientService clientService=new ClientService(CLIENT_TIMEOUT,TOKEN_TIMEOUT);
+    CaptchaService captchaService=new CaptchaService();
+    ClientService clientService=new ClientService(CLIENT_TIMEOUT);
 
     /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)

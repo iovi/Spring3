@@ -11,7 +11,7 @@ public class ClientTest {
 
     /**Тест создания ненулевого Client*/
     @Test
-    public void notNullClientData(){
+    public void notNullClient(){
         Client client =new Client();
         assertFalse(client ==null);
         assertFalse(client.getPublicKey()==null);
@@ -20,7 +20,7 @@ public class ClientTest {
 
     /**Тест корректности времени создания Client*/
     @Test
-    public void correctClientDataCreationTime(){
+    public void correctClientCreationTime(){
         long time1=new Date().getTime();
         Client client =new Client();
         long time2=new Date().getTime();

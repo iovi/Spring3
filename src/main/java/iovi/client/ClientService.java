@@ -4,16 +4,16 @@ package iovi.client;
 import java.util.*;
 
 public class ClientService {
+   /**key-value хранилище клиентов, key - публичный ключ клиента, value - клиент*/
    Map<String,Client> clients;
+   /**key-value хранилище токенов, key - секретный ключ клиента, value - токен*/
    Map<String,ClientToken> tokens;
    long clientTimeout;
-   long tokenTimeout;
 
-   public ClientService(long clientTimeout, long tokenTimeout){
+   public ClientService(long clientTimeout){
 
-       clients= Collections.synchronizedMap(new HashMap<>());
-       tokens =Collections.synchronizedMap(new HashMap<>());
-       this.tokenTimeout=tokenTimeout;
+       clients=new HashMap<>();
+       tokens=Collections.synchronizedMap(new HashMap<>());
        this.clientTimeout=clientTimeout;
    }
    public Client registerClient(){
@@ -49,7 +49,7 @@ public class ClientService {
    public String getTokenForClient(String publicKey){
        if (checkClientExistence(publicKey)){
             ClientToken token=new ClientToken(publicKey);
-            tokens.put(token.getTokenString(),token);
+            tokens.put(clients.get(publicKey).getSecretKey(),token);
             return token.getTokenString();
        } else{
             return null;
@@ -57,23 +57,18 @@ public class ClientService {
 
    }
    public String verifyClientToken(String secretKey,String tokenString){
-       ClientToken token= tokens.get(tokenString);
+       ClientToken token= tokens.get(secretKey);
        if (token==null){
-           return "IncorrectToken";
+           return "NoTokenForSuchKey";
        } else{
-           tokens.remove(tokenString);
-           if (token.getCreationTime().getTime()+tokenTimeout< new Date().getTime())
-               return "TokenIsExpired";
-
+           tokens.remove(secretKey);
+           if (!token.getTokenString().equals(tokenString))
+               return "IncorrectToken";
            Client client=clients.get(token.getClientPublicKey());
            if (isClientExpired(client)){
                clients.remove(client.getPublicKey());
                return "ClientIsExpired";
-           }
-           if (!secretKey.equals(client.getSecretKey()))
-               return "IncorrectSecretKey";
-           else{
-               clients.remove(token.getClientPublicKey());
+           } else {
                return null;
            }
        }

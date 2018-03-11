@@ -137,8 +137,8 @@ public class FunctionalTest {
             assertEquals(true,sender.success);
         };
 
-        Thread threads[]=new Thread[500];
-        for (int i=0;i<500;i++){
+        Thread threads[]=new Thread[1000];
+        for (int i=0;i<1000;i++){
             threads[i]=new Thread(senderActivity);
             threads[i].start();
         }

@@ -21,7 +21,7 @@ public class CaptchaService{
 
     /**минимально допустимое значние таймаута в мс*/
     final static long MIN_TIMEOUT=60000;
-    Map<String,CaptchaWithCreationTime> captchas;
+    Map<String,Captcha> captchas;
 
     public CaptchaService(){
         captchas = synchronizedMap(new HashMap());
@@ -34,8 +34,7 @@ public class CaptchaService{
     public String getNewCaptchaId(){
         Captcha captcha=new Captcha();
         String uid= UUID.randomUUID().toString();
-
-        captchas.put(uid,new CaptchaWithCreationTime(captcha));
+        captchas.put(uid,captcha);
         return uid;
     }
 
@@ -44,7 +43,7 @@ public class CaptchaService{
      * @return текст captcha
      */
     public String getCaptchaText(String captchaId){
-        return captchas.containsKey(captchaId)? captchas.get(captchaId).getCaptcha().getText():null;
+        return captchas.containsKey(captchaId)? captchas.get(captchaId).getText():null;
     }
 
     /**
@@ -52,7 +51,7 @@ public class CaptchaService{
      * @return картинка captcha
      */
     public BufferedImage getCaptchaImage(String captchaId){
-        return captchas.containsKey(captchaId)? captchas.get(captchaId).getCaptcha().getImage():null;
+        return captchas.containsKey(captchaId)? captchas.get(captchaId).getImage():null;
     }
 
     /**
@@ -68,12 +67,12 @@ public class CaptchaService{
      * @return true если все условия проверки успешно выполнены, false в противном случае
      */
     public boolean checkCaptchaText(String captchaId, String captchaText){
-        CaptchaWithCreationTime captchaData= captchas.get(captchaId);
-        if (captchaData==null)
+        Captcha captcha= captchas.get(captchaId);
+        if (captcha==null)
             return false;
         else {
-            if (captchaData.getCaptcha().getText().equals(captchaText) &&
-                    captchaData.getCreationTime().getTime() + getTimeout() > new Date().getTime()) {
+            if (captcha.getText().equals(captchaText) &&
+                    captcha.getCreationTime().getTime() + getTimeout() > new Date().getTime()) {
                 captchas.remove(captchaId);
                 return true;
             } else{

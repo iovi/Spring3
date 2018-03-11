@@ -51,9 +51,12 @@ public class ClientServiceTest {
     public void attachingTest(){
         ClientService clientService =new ClientService(TIMEOUT);
         Client client=clientService.registerClient();
-        String captchaId="1212232132123";
-        clientService.attachCaptchaToClient(captchaId,client.getPublicKey());
-        assertTrue(clientService.checkCaptchaAttachedToClient(captchaId,client.getPublicKey()));
+        String captchaId1="1111111111", captchaId2="222222222",captchaId3="33333333333";
+        clientService.attachCaptchaToClient(captchaId1,client.getPublicKey());
+        clientService.attachCaptchaToClient(captchaId2,client.getPublicKey());
+        assertTrue(clientService.checkCaptchaAttachedToClient(captchaId1,client.getPublicKey()));
+        assertTrue(clientService.checkCaptchaAttachedToClient(captchaId2,client.getPublicKey()));
+        assertFalse(clientService.checkCaptchaAttachedToClient(captchaId3,client.getPublicKey()));
     }
     /**
      * <p>Тест методов {@link ClientService#getTokenForClient(String)}. </p>

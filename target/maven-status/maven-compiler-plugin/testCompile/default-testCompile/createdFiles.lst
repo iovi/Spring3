@@ -1,0 +1,7 @@
+ClientTest.class
+ClientServiceTest.class
+CaptchaTest.class
+CaptchaServiceTest.class
+CaptchaRequestSender.class
+ClientTokenTest.class
+FunctionalTest.class

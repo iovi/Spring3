@@ -1,9 +1,11 @@
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\Captcha.java
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\CaptchaService.java
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\ClientData.java
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\ClientService.java
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\CaptchaWithCreationTime.java
-C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\ImageHelper.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\client\ClientToken.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\captcha\Captcha.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\helper\PropertiesHelper.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\OldObjectsRemover.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\client\Client.java
 C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\RemovingThread.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\helper\ImageHelper.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\captcha\CaptchaService.java
 C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\CaptchaController.java
 C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\Main.java
+C:\Users\Aspenson\Proj\Jaba\Spring3\src\main\java\iovi\client\ClientService.java

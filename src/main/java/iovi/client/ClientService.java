@@ -50,7 +50,7 @@ public class ClientService implements OldObjectsRemover{
    public boolean checkCaptchaAttachedToClient(String captchaId,String publicKey){
        if (checkClientExistence(publicKey)){
             Client client=clients.get(publicKey);
-            if (captchaId.equals(client.getCaptchaId()))
+            if (client.checkCaptchaAttached(captchaId))
                 return true;
        }
        return false;

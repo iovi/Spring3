@@ -28,4 +28,16 @@ public class ClientTest {
         assertTrue(client.getCreationTime().getTime()>=time1 && client.getCreationTime().getTime()<=time2);
     }
 
+    /**Тест корректности привязки captcha к клиенту и проверки этой привязки*/
+    @Test
+    public void attachingTest(){
+        Client client =new Client();
+        String captchaId1="2132453aa41343", captchaId2="546351aebce44456",captchaId3="0cdacad3646";
+        client.attachCaptcha(captchaId1);
+        client.attachCaptcha(captchaId2);
+        assertTrue(client.checkCaptchaAttached(captchaId1));
+        assertTrue(client.checkCaptchaAttached(captchaId2));
+        assertFalse(client.checkCaptchaAttached(captchaId3));
+    }
+
 }

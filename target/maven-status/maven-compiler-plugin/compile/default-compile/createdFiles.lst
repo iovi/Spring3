@@ -1,1 +1,11 @@
+iovi\captcha\Captcha.class
+iovi\client\Client.class
+iovi\helper\ImageHelper.class
+iovi\CaptchaController.class
 iovi\Main.class
+iovi\OldObjectsRemover.class
+iovi\RemovingThread.class
+iovi\helper\PropertiesHelper.class
+iovi\client\ClientService.class
+iovi\captcha\CaptchaService.class
+iovi\client\ClientToken.class

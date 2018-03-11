@@ -34,7 +34,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class CaptchaController {
 
     /** Срок действия клиента в мс*/
-    static final long CLIENT_TIMEOUT=120000;
+    static final long CLIENT_TIMEOUT=300000;
     /** Период удаления устаревших объектов в мс*/
     static final long REMOVING_PERIOD=600000;
 

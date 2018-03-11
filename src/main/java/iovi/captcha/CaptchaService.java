@@ -1,6 +1,7 @@
 package iovi.captcha;
 
 
+import iovi.OldObjectsRemover;
 import iovi.helper.PropertiesHelper;
 
 import java.awt.image.BufferedImage;
@@ -9,7 +10,7 @@ import java.util.*;
 import static java.util.Collections.synchronizedMap;
 
 /**Сервис для работы с captcha */
-public class CaptchaService{
+public class CaptchaService implements OldObjectsRemover{
 
     /**функция нахождения таймаута ожидания проверки captcha в мс*/
     private long getTimeout(){
@@ -81,4 +82,14 @@ public class CaptchaService{
             }
         }
     }
+    public void removeOldObjects(){
+        Iterator<Map.Entry<String,Captcha>> iterator;
+        for(iterator=captchas.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String,Captcha> entry = iterator.next();
+            if(entry.getValue().creationTime.getTime()+getTimeout() < new Date().getTime()) {
+                    iterator.remove();
+            }
+        }
+    }
+
 }

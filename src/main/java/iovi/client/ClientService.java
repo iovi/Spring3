@@ -1,10 +1,11 @@
 package iovi.client;
 
+import iovi.OldObjectsRemover;
 
 import java.util.*;
 
 /**Сервис для работы с клиентами*/
-public class ClientService {
+public class ClientService implements OldObjectsRemover{
    /**key-value хранилище клиентов, key - публичный ключ клиента, value - клиент*/
    Map<String,Client> clients;
    /**key-value хранилище токенов, key - секретный ключ клиента, value - токен*/
@@ -105,5 +106,17 @@ public class ClientService {
             return false;
         else
             return true;
+    }
+
+    public void removeOldObjects(){
+        Iterator<Map.Entry<String,Client>> iterator;
+        for(iterator=clients.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String,Client> entry = iterator.next();
+            if(entry.getValue().creationTime.getTime()+clientTimeout < new Date().getTime()) {
+                String secretKey=entry.getValue().getSecretKey();
+                tokens.remove(secretKey);
+                iterator.remove();
+            }
+        }
     }
 }

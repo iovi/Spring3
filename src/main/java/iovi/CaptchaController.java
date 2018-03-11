@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.System.getProperty;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -30,9 +33,22 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class CaptchaController {
 
-    static final long CLIENT_TIMEOUT=600000;
+    /** Срок действия клиента в мс*/
+    static final long CLIENT_TIMEOUT=120000;
+    /** Период удаления устаревших объектов в мс*/
+    static final long REMOVING_PERIOD=600000;
+
     CaptchaService captchaService=new CaptchaService();
     ClientService clientService=new ClientService(CLIENT_TIMEOUT);
+
+    @PostConstruct
+    public void startRemovingThread() {
+        List<OldObjectsRemover> services=new ArrayList<>();
+        services.add(captchaService);
+        services.add(clientService);
+        RemovingThread remover=new RemovingThread(REMOVING_PERIOD,services);
+        remover.start();
+    }
 
     /** Метод для вывода captcha-картинки с id, указанным в адресе запроса*/
     @RequestMapping(value = "/captcha/{captchaId}", method = GET)
